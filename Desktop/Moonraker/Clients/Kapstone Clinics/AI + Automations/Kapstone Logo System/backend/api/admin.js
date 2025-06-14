@@ -140,6 +140,53 @@ router.patch('/clinics/:clinicId/status', authMiddleware, async (req, res) => {
   }
 });
 
+// Toggle clinic enabled/disabled status
+router.patch('/clinics/:clinicId/toggle', authMiddleware, async (req, res) => {
+  try {
+    const { clinicId } = req.params;
+    
+    if (isMongoAvailable()) {
+      const clinic = await Clinic.findOne({ clinicId });
+      if (!clinic) {
+        return res.status(404).json({ error: 'Clinic not found' });
+      }
+      
+      // Toggle between approved and suspended
+      clinic.status = clinic.status === 'approved' ? 'suspended' : 'approved';
+      await clinic.save();
+      
+      res.json({
+        success: true,
+        clinic: {
+          clinicId: clinic.clinicId,
+          name: clinic.name,
+          status: clinic.status
+        }
+      });
+    } else {
+      const clinic = memoryStore.findClinic(clinicId);
+      if (!clinic) {
+        return res.status(404).json({ error: 'Clinic not found' });
+      }
+      
+      // Toggle between approved and suspended
+      clinic.status = clinic.status === 'approved' ? 'suspended' : 'approved';
+      
+      res.json({
+        success: true,
+        clinic: {
+          clinicId: clinic.clinicId,
+          name: clinic.name,
+          status: clinic.status
+        }
+      });
+    }
+    
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get analytics
 router.get('/analytics', authMiddleware, async (req, res) => {
   try {

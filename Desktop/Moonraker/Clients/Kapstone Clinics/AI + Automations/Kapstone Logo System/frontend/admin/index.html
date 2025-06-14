@@ -61,7 +61,7 @@
         
         .script-box {
             background: #1e293b;
-            color: #e2e8f0;
+            color: white;
             padding: 15px;
             border-radius: 6px;
             font-family: monospace;
@@ -151,6 +151,57 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             margin-bottom: 30px;
             text-align: center;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #10b981;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .toggle-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-left: 8px;
         }
     </style>
 </head>
@@ -353,20 +404,29 @@
             }
             container.innerHTML = html;
             
-            // Add event listeners for copy buttons
+            // Add event listeners for copy buttons and toggle switches
             for (let i = 0; i < clinics.length; i++) {
                 const clinic = clinics[i];
                 const copyBtn = document.getElementById('copy-' + clinic.clinicId);
+                const toggleBtn = document.getElementById('toggle-' + clinic.clinicId);
+                
                 if (copyBtn) {
                     copyBtn.addEventListener('click', function() {
                         copyToClipboard(clinic.clinicId);
+                    });
+                }
+                
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('change', function() {
+                        toggleClinicStatus(clinic.clinicId, this.checked);
                     });
                 }
             }
         }
         
         function buildClinicCard(clinic) {
-            const script = '<script src="' + window.location.origin + '/widget/logo/' + clinic.clinicId + '"><\/script>';
+            const script = '&lt;script src=&quot;' + window.location.origin + '/widget/logo/' + clinic.clinicId + '&quot;&gt;&lt;/script&gt;';
+            const isEnabled = clinic.status === 'approved';
             
             return '<div class="clinic-card">' +
                    '<div class="clinic-name">' + clinic.name + '</div>' +
@@ -374,10 +434,19 @@
                    '<div style="margin: 15px 0;"><strong>Embed Script:</strong>' +
                    '<div class="script-box">' +
                    '<button class="copy-btn" id="copy-' + clinic.clinicId + '">Copy</button>' +
-                   '<div>' + script + '</div>' +
+                   '<div style="color: white; font-family: monospace;">' + script + '</div>' +
                    '</div></div>' +
                    '<div class="actions">' +
+                   '<div style="display: flex; align-items: center; gap: 15px;">' +
                    '<span class="status-badge status-' + clinic.status + '">' + clinic.status + '</span>' +
+                   '<div style="display: flex; align-items: center;">' +
+                   '<label class="toggle-switch">' +
+                   '<input type="checkbox" id="toggle-' + clinic.clinicId + '" ' + (isEnabled ? 'checked' : '') + '>' +
+                   '<span class="toggle-slider"></span>' +
+                   '</label>' +
+                   '<span class="toggle-label">' + (isEnabled ? 'Enabled' : 'Disabled') + '</span>' +
+                   '</div>' +
+                   '</div>' +
                    '</div></div>';
         }
         
@@ -402,6 +471,50 @@
             }).catch(function() {
                 alert('Copy failed');
             });
+        }
+        
+        async function toggleClinicStatus(clinicId, isEnabled) {
+            try {
+                const response = await fetch(API_BASE + '/admin/clinics/' + clinicId + '/toggle', {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Clinic status toggled:', data.clinic.status);
+                    
+                    // Update the label text
+                    const labelElement = document.querySelector('#toggle-' + clinicId + ' + .toggle-slider').parentElement.nextElementSibling;
+                    if (labelElement) {
+                        labelElement.textContent = isEnabled ? 'Enabled' : 'Disabled';
+                    }
+                    
+                    // Refresh the clinic list to update status badges
+                    loadClinics();
+                } else {
+                    const error = await response.json();
+                    alert('Error toggling clinic status: ' + (error.error || 'Unknown error'));
+                    
+                    // Revert the toggle
+                    const toggle = document.getElementById('toggle-' + clinicId);
+                    if (toggle) {
+                        toggle.checked = !isEnabled;
+                    }
+                }
+            } catch (error) {
+                console.error('Toggle error:', error);
+                alert('Failed to toggle clinic status');
+                
+                // Revert the toggle
+                const toggle = document.getElementById('toggle-' + clinicId);
+                if (toggle) {
+                    toggle.checked = !isEnabled;
+                }
+            }
         }
         
         // Initialize when page loads
