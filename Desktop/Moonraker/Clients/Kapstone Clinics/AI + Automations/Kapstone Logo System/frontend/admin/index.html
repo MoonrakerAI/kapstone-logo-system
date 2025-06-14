@@ -205,22 +205,50 @@
         let clinics = [];
         let authToken = localStorage.getItem('admin-token');
         
-        // Check authentication on page load
-        if (!authToken) {
-            window.location.href = '/';
-            return;
-        }
-        
         function init() {
-            loadClinics();
+            // Check authentication on page load
+            if (!authToken) {
+                window.location.href = '/';
+                return;
+            }
+            
+            console.log('Admin page initialized');
             setupEventListeners();
+            loadClinics();
         }
         
         function setupEventListeners() {
-            document.getElementById('add-clinic-btn').addEventListener('click', showModal);
-            document.getElementById('cancel-btn').addEventListener('click', hideModal);
-            document.getElementById('clinic-form').addEventListener('submit', handleSubmit);
-            document.getElementById('add-modal').addEventListener('click', handleModalClick);
+            console.log('Setting up event listeners');
+            
+            const addBtn = document.getElementById('add-clinic-btn');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const form = document.getElementById('clinic-form');
+            const modal = document.getElementById('add-modal');
+            
+            if (addBtn) {
+                addBtn.addEventListener('click', showModal);
+                console.log('Add clinic button listener added');
+            } else {
+                console.error('Add clinic button not found');
+            }
+            
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', hideModal);
+            } else {
+                console.error('Cancel button not found');
+            }
+            
+            if (form) {
+                form.addEventListener('submit', handleSubmit);
+            } else {
+                console.error('Form not found');
+            }
+            
+            if (modal) {
+                modal.addEventListener('click', handleModalClick);
+            } else {
+                console.error('Modal not found');
+            }
         }
         
         function showModal() {
@@ -272,12 +300,17 @@
         
         async function loadClinics() {
             try {
+                console.log('Loading clinics from:', API_BASE + '/admin/clinics');
+                console.log('Using token:', authToken);
+                
                 const response = await fetch(API_BASE + '/admin/clinics', {
                     headers: { 'Authorization': 'Bearer ' + authToken }
                 });
                 
+                console.log('Response status:', response.status);
+                
                 if (response.status === 401 || response.status === 403) {
-                    // Token is invalid, redirect to login
+                    console.log('Authentication failed, redirecting to login');
                     localStorage.removeItem('admin-token');
                     window.location.href = '/';
                     return;
@@ -285,12 +318,18 @@
                 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Clinics data received:', data);
                     clinics = data.clinics || [];
+                    console.log('Number of clinics:', clinics.length);
                     displayClinics();
                 } else {
+                    console.error('Failed to load clinics, status:', response.status);
+                    const errorData = await response.text();
+                    console.error('Error response:', errorData);
                     showNoClinics();
                 }
             } catch (error) {
+                console.error('Error loading clinics:', error);
                 showNoClinics();
             }
         }
