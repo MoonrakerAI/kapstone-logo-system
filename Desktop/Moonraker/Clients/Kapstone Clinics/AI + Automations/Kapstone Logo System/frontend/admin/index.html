@@ -156,8 +156,9 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
+        <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
             <h1>Kapstone Admin Dashboard</h1>
+            <button class="btn btn-danger" onclick="logout()">Logout</button>
         </div>
         
         <div class="add-clinic-section">
@@ -200,8 +201,15 @@
 
     <script>
         // Simple, clean JavaScript without complex syntax
-        const API_BASE = 'http://localhost:3002/api';
+        const API_BASE = window.location.origin + '/api';
         let clinics = [];
+        let authToken = localStorage.getItem('admin-token');
+        
+        // Check authentication on page load
+        if (!authToken) {
+            window.location.href = '/';
+            return;
+        }
         
         function init() {
             loadClinics();
@@ -241,7 +249,7 @@
                 const response = await fetch(API_BASE + '/admin/clinics', {
                     method: 'POST',
                     headers: {
-                        'Authorization': 'Bearer dummy-token',
+                        'Authorization': 'Bearer ' + authToken,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ name: name, website: website, status: status })
@@ -249,12 +257,13 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    const script = '<script src="http://localhost:3002/widget/logo/' + data.clinic.clinicId + '"><\/script>';
+                    const script = '<script src="' + window.location.origin + '/widget/logo/' + data.clinic.clinicId + '"><\/script>';
                     alert('Clinic created!\n\nID: ' + data.clinic.clinicId + '\nScript: ' + script);
                     hideModal();
                     loadClinics();
                 } else {
-                    alert('Error creating clinic');
+                    const error = await response.json();
+                    alert('Error creating clinic: ' + (error.error || 'Unknown error'));
                 }
             } catch (error) {
                 alert('Failed to create clinic');
@@ -264,8 +273,15 @@
         async function loadClinics() {
             try {
                 const response = await fetch(API_BASE + '/admin/clinics', {
-                    headers: { 'Authorization': 'Bearer dummy-token' }
+                    headers: { 'Authorization': 'Bearer ' + authToken }
                 });
+                
+                if (response.status === 401 || response.status === 403) {
+                    // Token is invalid, redirect to login
+                    localStorage.removeItem('admin-token');
+                    window.location.href = '/';
+                    return;
+                }
                 
                 if (response.ok) {
                     const data = await response.json();
@@ -311,7 +327,7 @@
         }
         
         function buildClinicCard(clinic) {
-            const script = '<script src="http://localhost:3002/widget/logo/' + clinic.clinicId + '"><\/script>';
+            const script = '<script src="' + window.location.origin + '/widget/logo/' + clinic.clinicId + '"><\/script>';
             
             return '<div class="clinic-card">' +
                    '<div class="clinic-name">' + clinic.name + '</div>' +
@@ -326,8 +342,13 @@
                    '</div></div>';
         }
         
+        function logout() {
+            localStorage.removeItem('admin-token');
+            window.location.href = '/';
+        }
+        
         function copyToClipboard(clinicId) {
-            const script = '<script src="http://localhost:3002/widget/logo/' + clinicId + '"><\/script>';
+            const script = '<script src="' + window.location.origin + '/widget/logo/' + clinicId + '"><\/script>';
             
             navigator.clipboard.writeText(script).then(function() {
                 const btn = document.getElementById('copy-' + clinicId);

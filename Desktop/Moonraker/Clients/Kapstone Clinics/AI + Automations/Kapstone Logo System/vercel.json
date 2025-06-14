@@ -41,7 +41,7 @@
     },
     {
       "src": "/",
-      "dest": "frontend/demo.html"
+      "dest": "frontend/index.html"
     },
     {
       "src": "/(.*)",
