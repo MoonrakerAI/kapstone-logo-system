@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>External Site - Kapstone Widget Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .clinic-section {
+            background: white;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #28a745;
+        }
+        .widget-container {
+            border: 2px dashed #dee2e6;
+            padding: 20px;
+            margin: 15px 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        code {
+            background: #e9ecef;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏥 Moonraker Therapy Center</h1>
+        <p>External Website Testing Kapstone Verified Badge</p>
+    </div>
+
+    <div class="clinic-section">
+        <h2>About Our Practice</h2>
+        <p>We are a verified therapy practice committed to providing quality mental health services. 
+           Look for our verification badge below to confirm our legitimacy.</p>
+        
+        <h3>🏆 Our Verification Status:</h3>
+        <div class="widget-container" id="widget-test">
+            <p>Loading Kapstone verification badge...</p>
+            <!-- This is where the widget will appear -->
+            <script src="https://kapstone-logo-system-n5m2a0y71-moonrakerais-projects.vercel.app/widget/logo/KC-1E73AC31"></script>
+        </div>
+        
+        <div id="status" class="status info">
+            ⏳ Testing widget load...
+        </div>
+    </div>
+
+    <div class="clinic-section">
+        <h2>📋 Technical Details</h2>
+        <p><strong>Widget URL:</strong> <code>https://kapstone-logo-system-n5m2a0y71-moonrakerais-projects.vercel.app/widget/logo/KC-1E73AC31</code></p>
+        <p><strong>Clinic ID:</strong> <code>KC-1E73AC31</code></p>
+        <p><strong>Expected Behavior:</strong> Should display Kapstone logo with green checkmark</p>
+        <p><strong>Cross-Domain Test:</strong> This simulates embedding on external therapy websites</p>
+    </div>
+
+    <script>
+        // Test widget loading
+        let testsPassed = 0;
+        let totalTests = 3;
+        
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.innerHTML = message;
+        }
+        
+        function runTests() {
+            updateStatus('🔍 Running widget tests...', 'info');
+            
+            // Test 1: Check if widget script loaded
+            setTimeout(() => {
+                const widgets = document.querySelectorAll('.kapstone-verified-badge');
+                if (widgets.length > 0) {
+                    testsPassed++;
+                    console.log('✅ Test 1 PASSED: Widget element created');
+                } else {
+                    console.log('❌ Test 1 FAILED: No widget elements found');
+                }
+                
+                // Test 2: Check if image loaded
+                const images = document.querySelectorAll('.kapstone-verified-badge img');
+                if (images.length > 0) {
+                    testsPassed++;
+                    console.log('✅ Test 2 PASSED: Widget image found');
+                    
+                    // Test image load
+                    const img = images[0];
+                    img.onload = () => {
+                        testsPassed++;
+                        console.log('✅ Test 3 PASSED: Widget image loaded successfully');
+                        showFinalResults();
+                    };
+                    img.onerror = () => {
+                        console.log('❌ Test 3 FAILED: Widget image failed to load');
+                        showFinalResults();
+                    };
+                } else {
+                    console.log('❌ Test 2 FAILED: No widget images found');
+                    showFinalResults();
+                }
+            }, 2000);
+        }
+        
+        function showFinalResults() {
+            const percentage = Math.round((testsPassed / totalTests) * 100);
+            
+            if (testsPassed === totalTests) {
+                updateStatus(`🎉 SUCCESS! All tests passed (${testsPassed}/${totalTests}). Widget is working perfectly on external domains!`, 'success');
+            } else if (testsPassed > 0) {
+                updateStatus(`⚠️ PARTIAL SUCCESS: ${testsPassed}/${totalTests} tests passed (${percentage}%). Check console for details.`, 'error');
+            } else {
+                updateStatus(`❌ FAILED: Widget not loading. Check network tab for errors.`, 'error');
+            }
+            
+            // Show detailed results
+            console.log(`\n🧪 WIDGET TEST RESULTS:`);
+            console.log(`Tests Passed: ${testsPassed}/${totalTests} (${percentage}%)`);
+            console.log(`Widget Elements Found: ${document.querySelectorAll('.kapstone-verified-badge').length}`);
+            console.log(`Images Found: ${document.querySelectorAll('.kapstone-verified-badge img').length}`);
+            console.log(`Verification Checkmarks: ${document.querySelectorAll('.kapstone-verified-badge span').length}`);
+        }
+        
+        // Start tests when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Starting external widget test...');
+            console.log('Page URL:', window.location.href);
+            console.log('Expected widget to load from:', 'https://kapstone-logo-system-n5m2a0y71-moonrakerais-projects.vercel.app');
+            
+            runTests();
+        });
+        
+        // Test network connectivity
+        fetch('https://kapstone-logo-system-n5m2a0y71-moonrakerais-projects.vercel.app/widget/logo/KC-1E73AC31')
+            .then(response => {
+                if (response.ok) {
+                    console.log('✅ Widget endpoint is accessible');
+                    return response.text();
+                } else {
+                    console.log('❌ Widget endpoint returned status:', response.status);
+                    throw new Error('Endpoint not accessible');
+                }
+            })
+            .then(data => {
+                console.log('✅ Widget JavaScript length:', data.length, 'characters');
+                if (data.includes('kapstone-verified-badge')) {
+                    console.log('✅ Widget JavaScript contains expected badge code');
+                } else {
+                    console.log('❌ Widget JavaScript missing expected content');
+                }
+            })
+            .catch(error => {
+                console.error('❌ Network test failed:', error);
+            });
+    </script>
+</body>
+</html>
