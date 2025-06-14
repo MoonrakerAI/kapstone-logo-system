@@ -1,87 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Widget Test Page</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-      line-height: 1.6;
-    }
-    
-    .clinic-section {
-      background: #f8f9fa;
-      padding: 20px;
-      margin: 20px 0;
-      border-radius: 8px;
-      border-left: 4px solid #3b82f6;
-    }
-    
-    .widget-container {
-      background: white;
-      padding: 15px;
-      border-radius: 4px;
-      border: 2px dashed #ccc;
-      text-align: center;
-      margin: 15px 0;
-    }
-    
-    .instructions {
-      background: #e7f3ff;
-      padding: 15px;
-      border-radius: 4px;
-      margin: 20px 0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .widget-container {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            margin: 10px 0;
+            background: #fafafa;
+        }
+    </style>
 </head>
 <body>
-  <h1>Kapstone Widget Test Page</h1>
-  <p>This page demonstrates how the Kapstone verification widget appears on clinic websites.</p>
-  
-  <div class="instructions">
-    <h3>🧪 Testing Instructions:</h3>
-    <ol>
-      <li>Go to <a href="/admin/">Admin Dashboard</a> and login (admin/admin123)</li>
-      <li>Click "+ Add Clinic Manually" and create a test clinic</li>
-      <li>Copy the Clinic ID from the success message</li>
-      <li>Replace "YOUR-CLINIC-ID" below with the actual ID</li>
-      <li>Refresh this page to see the widget</li>
-    </ol>
-  </div>
-  
-  <div class="clinic-section">
-    <h2>Sample Clinic Website Content</h2>
-    <p>Welcome to our ketamine-assisted psychotherapy clinic. We provide safe, effective treatment for depression, anxiety, and other mental health conditions.</p>
+    <h1>Kapstone Logo Widget Test Page</h1>
     
-    <h3>Our Certifications</h3>
-    <div class="widget-container">
-      <p><strong>Replace "YOUR-CLINIC-ID" with actual Clinic ID:</strong></p>
-      <script src="http://localhost:3002/widget/logo/YOUR-CLINIC-ID"></script>
-      <p><small>Widget will appear above when valid Clinic ID is used</small></p>
+    <div class="test-section">
+        <h2>Test 1: Local Development Widget</h2>
+        <p>This should display the Kapstone verified logo (localhost):</p>
+        <div class="widget-container" id="test1">
+            <script src="http://localhost:3002/widget/logo/KC-5B215676"></script>
+        </div>
     </div>
     
-    <p>Our clinic meets the highest standards for ketamine therapy as verified by the Kapstone Directory.</p>
-  </div>
-  
-  <div class="clinic-section">
-    <h2>What the Widget Provides:</h2>
-    <ul>
-      <li>✅ Visual verification badge</li>
-      <li>🔗 SEO-friendly backlink to Kapstone Directory</li>
-      <li>📊 Analytics tracking for impressions</li>
-      <li>🛡️ Domain verification security</li>
-      <li>📱 Responsive design</li>
-    </ul>
-  </div>
-  
-  <script>
-    // Show current page URL for domain verification testing
-    console.log('Current domain:', window.location.hostname);
-    console.log('This domain would need to be verified in the clinic settings for the widget to work in production');
-  </script>
+    <div class="test-section">
+        <h2>Test 2: Production Widget (Currently Blocked by Auth)</h2>
+        <p>Testing production widget (will fail due to Vercel auth):</p>
+        <div class="widget-container" id="test2">
+            <p style="color: red; font-weight: bold;">⚠️ BLOCKED: Vercel authentication is protecting ALL routes</p>
+            <p>Widget URL: <code>https://kapstone-logo-system-7e6l9t2jo-moonrakerais-projects.vercel.app/widget/logo/KC-5B215676</code></p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Direct Widget URL Test</h2>
+        <p>You can test the widget URL directly: <a href="http://localhost:3002/widget/logo/KC-5B215676" target="_blank">http://localhost:3002/widget/logo/KC-5B215676</a></p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 4: Direct Logo Image Test</h2>
+        <p>Testing direct logo image access:</p>
+        <img src="http://localhost:3002/logos/standard.png" alt="Direct logo test" style="max-width: 200px;">
+    </div>
+    
+    <script>
+        // Debug information
+        console.log('Test page loaded at:', new Date());
+        console.log('Page URL:', window.location.href);
+        
+        // Function to show status
+        function updateStatus(containerId, message, isError = false) {
+            const container = document.getElementById(containerId);
+            const statusDiv = document.createElement('div');
+            statusDiv.style.cssText = `
+                margin-top: 10px; 
+                padding: 10px; 
+                border-radius: 4px; 
+                font-weight: bold;
+                ${isError ? 'background: #fee; color: #c00; border: 1px solid #fcc;' : 'background: #efe; color: #060; border: 1px solid #cfc;'}
+            `;
+            statusDiv.textContent = message;
+            container.appendChild(statusDiv);
+        }
+        
+        // Check if widgets loaded after a delay
+        setTimeout(() => {
+            const widgets = document.querySelectorAll('.kapstone-verified-badge');
+            console.log('Found', widgets.length, 'widgets on page');
+            
+            if (widgets.length === 0) {
+                console.error('No widgets found! Check widget script URLs.');
+                updateStatus('test1', '❌ No widgets loaded. Check console for errors.', true);
+            } else {
+                widgets.forEach((widget, index) => {
+                    console.log('Widget', index + 1, ':', widget);
+                    const containerId = widget.closest('.widget-container').id;
+                    if (containerId) {
+                        updateStatus(containerId, `✅ Widget ${index + 1} loaded successfully!`);
+                    }
+                });
+            }
+            
+            // Test if we can reach the widget endpoint
+            fetch('http://localhost:3002/widget/logo/KC-5B215676')
+                .then(response => {
+                    if (response.ok) {
+                        console.log('✅ Widget endpoint is accessible');
+                        return response.text();
+                    } else {
+                        console.error('❌ Widget endpoint returned:', response.status);
+                        throw new Error('Endpoint not accessible');
+                    }
+                })
+                .then(data => {
+                    console.log('Widget JavaScript length:', data.length, 'characters');
+                    if (data.includes('kapstone-verified-badge')) {
+                        console.log('✅ Widget JavaScript contains expected code');
+                    } else {
+                        console.error('❌ Widget JavaScript missing expected content');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Error fetching widget:', error);
+                    updateStatus('test1', '❌ Cannot reach widget endpoint. Is server running?', true);
+                });
+        }, 3000);
+    </script>
 </body>
 </html>

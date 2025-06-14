@@ -46,7 +46,7 @@
       "dest": "frontend/admin/index.html"
     },
     {
-      "src": "/(register|demo|test-widget)\\.html",
+      "src": "/(register|demo|test-widget|test-external-widget)\\.html",
       "dest": "frontend/$1.html"
     },
     {
