@@ -60,10 +60,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "functions": {
-    "backend/server.js": {
-      "includeFiles": "public/**"
-    }
   }
 }
