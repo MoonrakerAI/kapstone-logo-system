@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kapstone Logo Distribution System - Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      line-height: 1.6;
+    }
+    
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    
+    .header {
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    
+    .header h1 { 
+      color: #1e293b; 
+      margin-bottom: 10px;
+      font-size: 2.5em;
+    }
+    
+    .header p { 
+      color: #64748b; 
+      font-size: 1.2em;
+    }
+    
+    .section {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    
+    .section h2 {
+      color: #1e293b;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .demo-box {
+      background: #f1f5f9;
+      padding: 20px;
+      border-radius: 4px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    
+    .code-example {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9em;
+      margin: 20px 0;
+      overflow-x: auto;
+      position: relative;
+    }
+    
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8em;
+    }
+    
+    .copy-btn:hover { background: #2563eb; }
+    
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    
+    .feature-card {
+      background: #f8fafc;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .feature-card h3 {
+      color: #3b82f6;
+      margin-bottom: 10px;
+    }
+    
+    .steps {
+      counter-reset: step-counter;
+      margin: 20px 0;
+    }
+    
+    .step {
+      position: relative;
+      padding-left: 40px;
+      margin-bottom: 20px;
+      counter-increment: step-counter;
+    }
+    
+    .step::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 0;
+      background: #3b82f6;
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8em;
+      font-weight: 500;
+      margin: 0 5px;
+    }
+    
+    .status-approved { background: #d1fae5; color: #059669; }
+    .status-pending { background: #fef3c7; color: #d97706; }
+    
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 1em;
+      margin: 10px 5px;
+    }
+    
+    .btn-primary { background: #3b82f6; color: white; }
+    .btn-success { background: #10b981; color: white; }
+    
+    .logo-preview {
+      display: inline-block;
+      margin: 20px;
+      padding: 20px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+    
+    #test-widget {
+      margin: 20px auto;
+      text-align: center;
+      padding: 20px;
+      background: #f8fafc;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Kapstone Logo Distribution System</h1>
+      <p>Centralized verification and branding solution for certified clinics</p>
+    </div>
+    
+    <div class="section">
+      <h2>🎯 System Overview</h2>
+      <p>The Kapstone Logo Distribution System provides a centralized way for verified clinics to display the official Kapstone Clinics logo on their websites. This system ensures brand consistency and provides real-time verification status.</p>
+      
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h3>✓ Verified Badge</h3>
+          <p>Display an official verification checkmark alongside the Kapstone logo</p>
+        </div>
+        <div class="feature-card">
+          <h3>📊 Analytics</h3>
+          <p>Track impressions and monitor logo usage across all clinic websites</p>
+        </div>
+        <div class="feature-card">
+          <h3>🔒 Domain Verification</h3>
+          <p>Ensure logos only appear on authorized clinic domains</p>
+        </div>
+        <div class="feature-card">
+          <h3>⚡ Real-time Updates</h3>
+          <p>Instantly reflect status changes across all implementations</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>🚀 How It Works</h2>
+      <div class="steps">
+        <div class="step">
+          <h3>Register Your Clinic</h3>
+          <p>Submit your clinic information through our registration form. You'll receive a unique Clinic ID immediately.</p>
+        </div>
+        <div class="step">
+          <h3>Get Approved</h3>
+          <p>Our admin team reviews your application. Once approved, you'll receive your embed code via email.</p>
+        </div>
+        <div class="step">
+          <h3>Add to Your Website</h3>
+          <p>Simply paste the one-line script tag anywhere on your website where you want the logo to appear.</p>
+        </div>
+        <div class="step">
+          <h3>Logo Appears Automatically</h3>
+          <p>The verified Kapstone logo will display with a green checkmark, linking back to your clinic's profile.</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>📋 Example Implementation</h2>
+      <p>Here's how simple it is to add the Kapstone verified logo to your website:</p>
+      
+      <div class="code-example">
+        <button class="copy-btn" onclick="copyExample()">Copy</button>
+        <code id="example-code">&lt;script src="http://localhost:3002/widget/logo/KC-12345678"&gt;&lt;/script&gt;</code>
+      </div>
+      
+      <p>Replace <code>KC-12345678</code> with your actual Clinic ID.</p>
+      
+      <div class="demo-box">
+        <h3>Live Preview</h3>
+        <p>This is how the logo will appear on your website:</p>
+        <div class="logo-preview">
+          <div style="display: inline-block; position: relative;">
+            <img src="/logos/standard.png" alt="Kapstone Clinics" style="height: 40px;">
+            <span style="position: absolute; bottom: -5px; right: -5px; background: #10b981; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px;">✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>🔧 Test Your Implementation</h2>
+      <p>Want to see the widget in action? Here's a live test:</p>
+      
+      <div id="test-widget">
+        <p style="margin-bottom: 20px;">Click the button below to load a test widget:</p>
+        <button class="btn btn-primary" onclick="loadTestWidget()">Load Test Widget</button>
+        <div id="widget-container" style="margin-top: 20px;"></div>
+      </div>
+      
+      <p style="margin-top: 20px; color: #64748b; font-size: 0.9em;">
+        Note: In production, the widget will only load on verified domains associated with your clinic.
+      </p>
+    </div>
+    
+    <div class="section">
+      <h2>📊 Admin Dashboard</h2>
+      <p>Administrators can manage all clinics through our comprehensive dashboard:</p>
+      
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h3>Clinic Management</h3>
+          <p>Review applications, approve clinics, and manage statuses</p>
+        </div>
+        <div class="feature-card">
+          <h3>Analytics Overview</h3>
+          <p>Track total impressions, active clinics, and usage patterns</p>
+        </div>
+        <div class="feature-card">
+          <h3>Manual Registration</h3>
+          <p>Add clinics directly and generate embed codes instantly</p>
+        </div>
+      </div>
+      
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="/admin" class="btn btn-primary">Access Admin Dashboard</a>
+        <span style="color: #64748b; font-size: 0.9em; margin-left: 10px;">(Login required)</span>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>🎉 Ready to Get Started?</h2>
+      <p>Join the Kapstone verified clinic network today!</p>
+      
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="/register.html" class="btn btn-success">Register Your Clinic</a>
+        <a href="/test-widget.html" class="btn btn-primary">Test Widget Integration</a>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function copyExample() {
+      const code = document.getElementById('example-code').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => {
+          btn.textContent = originalText;
+        }, 2000);
+      });
+    }
+    
+    function loadTestWidget() {
+      const container = document.getElementById('widget-container');
+      container.innerHTML = '<p style="color: #64748b;">Loading widget...</p>';
+      
+      // Create a test clinic ID (in production, use a real one)
+      const testClinicId = 'KC-TEST123';
+      
+      // Create script element
+      const script = document.createElement('script');
+      script.src = `http://localhost:3002/widget/logo/${testClinicId}`;
+      script.onerror = () => {
+        container.innerHTML = '<p style="color: #dc2626;">Failed to load widget. Make sure the server is running on port 3002.</p>';
+      };
+      
+      // Add script to container
+      container.innerHTML = '';
+      container.appendChild(script);
+      
+      // Hide the button after loading
+      event.target.style.display = 'none';
+    }
+  </script>
+</body>
+</html>

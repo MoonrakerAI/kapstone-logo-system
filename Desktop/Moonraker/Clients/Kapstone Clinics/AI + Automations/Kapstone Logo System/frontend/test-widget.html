@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Widget Test Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    .clinic-section {
+      background: #f8f9fa;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      border-left: 4px solid #3b82f6;
+    }
+    
+    .widget-container {
+      background: white;
+      padding: 15px;
+      border-radius: 4px;
+      border: 2px dashed #ccc;
+      text-align: center;
+      margin: 15px 0;
+    }
+    
+    .instructions {
+      background: #e7f3ff;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Kapstone Widget Test Page</h1>
+  <p>This page demonstrates how the Kapstone verification widget appears on clinic websites.</p>
+  
+  <div class="instructions">
+    <h3>🧪 Testing Instructions:</h3>
+    <ol>
+      <li>Go to <a href="/admin/">Admin Dashboard</a> and login (admin/admin123)</li>
+      <li>Click "+ Add Clinic Manually" and create a test clinic</li>
+      <li>Copy the Clinic ID from the success message</li>
+      <li>Replace "YOUR-CLINIC-ID" below with the actual ID</li>
+      <li>Refresh this page to see the widget</li>
+    </ol>
+  </div>
+  
+  <div class="clinic-section">
+    <h2>Sample Clinic Website Content</h2>
+    <p>Welcome to our ketamine-assisted psychotherapy clinic. We provide safe, effective treatment for depression, anxiety, and other mental health conditions.</p>
+    
+    <h3>Our Certifications</h3>
+    <div class="widget-container">
+      <p><strong>Replace "YOUR-CLINIC-ID" with actual Clinic ID:</strong></p>
+      <script src="http://localhost:3002/widget/logo/YOUR-CLINIC-ID"></script>
+      <p><small>Widget will appear above when valid Clinic ID is used</small></p>
+    </div>
+    
+    <p>Our clinic meets the highest standards for ketamine therapy as verified by the Kapstone Directory.</p>
+  </div>
+  
+  <div class="clinic-section">
+    <h2>What the Widget Provides:</h2>
+    <ul>
+      <li>✅ Visual verification badge</li>
+      <li>🔗 SEO-friendly backlink to Kapstone Directory</li>
+      <li>📊 Analytics tracking for impressions</li>
+      <li>🛡️ Domain verification security</li>
+      <li>📱 Responsive design</li>
+    </ul>
+  </div>
+  
+  <script>
+    // Show current page URL for domain verification testing
+    console.log('Current domain:', window.location.hostname);
+    console.log('This domain would need to be verified in the clinic settings for the widget to work in production');
+  </script>
+</body>
+</html>

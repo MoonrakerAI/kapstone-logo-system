@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apply to Kapstone Directory</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: #1e293b;
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+    
+    .header h1 { margin-bottom: 10px; }
+    .header p { opacity: 0.8; }
+    
+    .form-container { padding: 40px; }
+    
+    .form-group {
+      margin-bottom: 25px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #374151;
+    }
+    
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+    
+    textarea { resize: vertical; min-height: 100px; }
+    
+    .checkbox-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+      margin-top: 4px;
+    }
+    
+    .submit-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: transform 0.2s;
+    }
+    
+    .submit-btn:hover {
+      transform: translateY(-2px);
+    }
+    
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .success-message {
+      background: #d1fae5;
+      border: 2px solid #10b981;
+      color: #065f46;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .error-message {
+      background: #fee2e2;
+      border: 2px solid #ef4444;
+      color: #991b1b;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .embed-code {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      word-break: break-all;
+      margin-top: 10px;
+    }
+    
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Apply to Kapstone Directory</h1>
+      <p>Join the premier directory for ketamine-assisted psychotherapy clinics</p>
+    </div>
+    
+    <div class="form-container">
+      <div id="success-section" class="hidden">
+        <div class="success-message">
+          <h3>Application Submitted Successfully!</h3>
+          <p>Thank you for applying to the Kapstone Directory. Your application is under review.</p>
+          <p><strong>Your Clinic ID:</strong> <span id="clinic-id"></span></p>
+          <p>You will receive an email with your approval status within 3-5 business days.</p>
+          
+          <h4 style="margin-top: 20px;">Your Embed Code (for after approval):</h4>
+          <div class="embed-code" id="embed-code"></div>
+          <p><small>Save this code - you'll need it once your clinic is approved.</small></p>
+        </div>
+      </div>
+      
+      <div id="error-section" class="hidden">
+        <div class="error-message" id="error-message"></div>
+      </div>
+      
+      <form id="registration-form">
+        <div class="form-group">
+          <label for="name">Clinic Name *</label>
+          <input type="text" id="name" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="email">Contact Email *</label>
+          <input type="email" id="email" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="website">Clinic Website *</label>
+          <input type="url" id="website" placeholder="https://yourclinic.com" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="contactPerson">Primary Contact Person *</label>
+          <input type="text" id="contactPerson" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone">
+        </div>
+        
+        <div class="form-group">
+          <label for="address">Clinic Address</label>
+          <textarea id="address" placeholder="Full address including city, state, zip"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="certifications">Staff Certifications & Qualifications</label>
+          <textarea id="certifications" placeholder="List relevant certifications, licenses, and qualifications of your ketamine therapy staff"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="agree-terms" required>
+            <label for="agree-terms">I certify that our clinic meets high standards for ketamine-assisted psychotherapy and agree to the Kapstone Directory terms of service *</label>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="agree-review" required>
+            <label for="agree-review">I understand that my application will be reviewed and approval is not guaranteed *</label>
+          </div>
+        </div>
+        
+        <button type="submit" class="submit-btn" id="submit-btn">
+          Submit Application
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3002/api';
+    
+    document.getElementById('registration-form').onsubmit = async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
+      // Hide previous messages
+      document.getElementById('success-section').classList.add('hidden');
+      document.getElementById('error-section').classList.add('hidden');
+      
+      const formData = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        website: document.getElementById('website').value,
+        contactPerson: document.getElementById('contactPerson').value,
+        phone: document.getElementById('phone').value,
+        address: document.getElementById('address').value,
+        certifications: document.getElementById('certifications').value.split('\n').filter(c => c.trim())
+      };
+      
+      try {
+        const response = await fetch(`${API_BASE}/clinics/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Show success message
+          document.getElementById('clinic-id').textContent = data.clinicId;
+          document.getElementById('embed-code').textContent = data.embedCode;
+          document.getElementById('success-section').classList.remove('hidden');
+          
+          // Hide form
+          document.getElementById('registration-form').classList.add('hidden');
+          
+        } else {
+          // Show error message
+          document.getElementById('error-message').textContent = data.error;
+          document.getElementById('error-section').classList.remove('hidden');
+        }
+        
+      } catch (error) {
+        document.getElementById('error-message').textContent = 'Network error: ' + error.message;
+        document.getElementById('error-section').classList.remove('hidden');
+      }
+      
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Application';
+    };
+  </script>
+</body>
+</html>
