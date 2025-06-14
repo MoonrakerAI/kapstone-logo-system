@@ -1,0 +1,9 @@
+# Headers for public widget endpoints
+/widget/*
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET
+  Cache-Control: public, max-age=300
+
+/logos/*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=86400

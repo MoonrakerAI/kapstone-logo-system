@@ -1,0 +1,4 @@
+# Exclude test files and development files
+test-widget.html
+server.log
+*.log

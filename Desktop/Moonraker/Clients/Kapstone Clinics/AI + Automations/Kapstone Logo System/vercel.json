@@ -16,15 +16,25 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "backend/server.js"
-    },
-    {
       "src": "/widget/(.*)",
-      "dest": "backend/server.js"
+      "dest": "backend/server.js",
+      "headers": {
+        "Cache-Control": "public, max-age=300",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET",
+        "Access-Control-Allow-Headers": "Content-Type"
+      }
     },
     {
       "src": "/logos/(.*)",
+      "dest": "backend/server.js",
+      "headers": {
+        "Cache-Control": "public, max-age=86400",
+        "Access-Control-Allow-Origin": "*"
+      }
+    },
+    {
+      "src": "/api/(.*)",
       "dest": "backend/server.js"
     },
     {
@@ -50,5 +60,10 @@
   ],
   "env": {
     "NODE_ENV": "production"
+  },
+  "functions": {
+    "backend/server.js": {
+      "includeFiles": "public/**"
+    }
   }
 }
