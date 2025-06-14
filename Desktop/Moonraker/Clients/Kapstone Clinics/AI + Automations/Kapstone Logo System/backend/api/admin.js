@@ -277,7 +277,7 @@ router.post('/clinics', authMiddleware, async (req, res) => {
           status: clinic.status,
           apiKey: clinic.apiKey,
           embedCode: status === 'approved' 
-            ? `<script src="http://localhost:3002/widget/logo/${clinic.clinicId}"></script>`
+            ? `<script src="${req.protocol}://${req.get('host')}/widget/logo/${clinic.clinicId}"></script>`
             : null
         }
       });
@@ -306,7 +306,7 @@ router.post('/clinics', authMiddleware, async (req, res) => {
           status: clinic.status,
           apiKey: clinic.apiKey,
           embedCode: status === 'approved' 
-            ? `<script src="http://localhost:3002/widget/logo/${clinic.clinicId}"></script>`
+            ? `<script src="${req.protocol}://${req.get('host')}/widget/logo/${clinic.clinicId}"></script>`
             : null
         }
       });
