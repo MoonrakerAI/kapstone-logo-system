@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const kvStore = require('../storage/kvStore');
+const staticStore = require('../storage/staticStore');
 const Clinic = require('../models/Clinic');
 const memoryStore = require('../storage/memoryStore');
 
@@ -23,8 +24,15 @@ router.get('/logo/:clinicId', async (req, res) => {
       'Content-Type': 'application/javascript'
     });
 
-    // Get clinic data from KV store with fallback to MongoDB/memory
-    let clinic = await kvStore.getClinic(clinicId);
+    // Get clinic data from static store first (most reliable for serverless)
+    let clinic = await staticStore.getClinic(clinicId);
+    console.log(`Widget-v2: Static store result for ${clinicId}:`, clinic);
+    
+    // If not found in static store, try KV store
+    if (!clinic) {
+      clinic = await kvStore.getClinic(clinicId);
+      console.log(`Widget-v2: KV store result for ${clinicId}:`, clinic);
+    }
     
     // If not found in KV, try MongoDB directly (same logic as status API)
     if (!clinic) {
@@ -43,9 +51,10 @@ router.get('/logo/:clinicId', async (req, res) => {
               logoVersion: mongoClinic.logoVersion || 'standard'
             };
             
-            // Sync to KV for future requests
+            // Sync to KV and static store for future requests
             await kvStore.saveClinic(clinic);
-            console.log(`Widget-v2: Synced clinic ${clinicId} from MongoDB to KV`);
+            await staticStore.saveClinic(clinic);
+            console.log(`Widget-v2: Synced clinic ${clinicId} from MongoDB to KV and static`);
           }
         } catch (mongoError) {
           console.error('Widget-v2: MongoDB error:', mongoError.message);
@@ -61,9 +70,10 @@ router.get('/logo/:clinicId', async (req, res) => {
             logoVersion: memoryClinic.logoVersion || 'standard'
           };
           
-          // Sync to KV for future requests
+          // Sync to KV and static store for future requests
           await kvStore.saveClinic(clinic);
-          console.log(`Widget-v2: Synced clinic ${clinicId} from memory to KV`);
+          await staticStore.saveClinic(clinic);
+          console.log(`Widget-v2: Synced clinic ${clinicId} from memory to KV and static`);
         }
       }
     }

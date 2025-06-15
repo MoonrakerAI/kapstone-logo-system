@@ -6,6 +6,7 @@ const Clinic = require('../models/Clinic');
 const memoryStore = require('../storage/memoryStore');
 const ClinicCache = require('../storage/clinicCache');
 const kvStore = require('../storage/kvStore');
+const staticStore = require('../storage/staticStore');
 const { sendApprovalEmail } = require('../services/emailService');
 
 // Check if MongoDB is available
@@ -172,6 +173,9 @@ router.patch('/clinics/:clinicId/toggle', authMiddleware, async (req, res) => {
       // Save to KV store for production reliability
       await kvStore.saveClinic(clinic);
       
+      // Save to static store for widget-v2 access
+      await staticStore.saveClinic(clinic);
+      
       res.json({
         success: true,
         clinic: {
@@ -301,6 +305,9 @@ router.post('/clinics', authMiddleware, async (req, res) => {
       // Save to KV store for production reliability
       await kvStore.saveClinic(clinic);
       
+      // Save to static store for widget-v2 access
+      await staticStore.saveClinic(clinic);
+      
       res.status(201).json({
         success: true,
         clinic: {
@@ -390,6 +397,9 @@ router.delete('/clinics/:clinicId', authMiddleware, async (req, res) => {
       
       // Remove from KV store
       await kvStore.deleteClinic(clinicId);
+      
+      // Remove from static store
+      await staticStore.deleteClinic(clinicId);
       
       res.json({ 
         success: true, 
