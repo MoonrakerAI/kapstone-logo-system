@@ -58,14 +58,17 @@ router.get('/logo/:clinicId', async (req, res) => {
     // Generate widget JavaScript
     const widgetScript = `
 (function() {
+  console.log('Kapstone widget loading for clinic: ${clinicId}');
+  
   // Find container - try multiple methods for compatibility
   var container = document.currentScript ? document.currentScript.parentElement : document.body;
+  console.log('Container found:', container);
   
   // Create wrapper with unique ID to avoid conflicts
   var wrapper = document.createElement('div');
   wrapper.className = 'kapstone-verified-badge';
   wrapper.id = 'kapstone-badge-${clinicId}';
-  wrapper.style.cssText = 'display: block; text-align: center; margin: 20px auto; padding: 10px; width: fit-content; clear: both;';
+  wrapper.style.cssText = 'display: block !important; text-align: center; margin: 20px auto; padding: 10px; width: fit-content; clear: both; position: relative; z-index: 9999; background: rgba(255,255,255,0.9); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);';
   
   // Create link
   var link = document.createElement('a');
@@ -73,20 +76,25 @@ router.get('/logo/:clinicId', async (req, res) => {
   link.target = '_blank';
   link.rel = 'noopener noreferrer';
   link.title = 'Verified by Kapstone Clinics';
-  link.style.cssText = 'display: inline-block; text-decoration: none;';
+  link.style.cssText = 'display: inline-block !important; text-decoration: none;';
   
   // Create image with error handling
   var img = document.createElement('img');
   img.src = '${req.get('host').includes('vercel.app') ? 'https' : req.protocol}://${req.get('host')}/api/logos/${clinic.logoVersion}.png';
   img.alt = 'Kapstone Verified Clinic';
-  img.style.cssText = 'max-width: 200px; height: auto; display: block; margin: 0 auto; border: 0;';
+  img.style.cssText = 'max-width: 200px !important; height: auto !important; display: block !important; margin: 0 auto; border: 0; opacity: 1 !important; visibility: visible !important;';
   
   // Add error handling for image loading
   img.onerror = function() {
-    console.log('Kapstone logo failed to load');
+    console.log('Kapstone logo failed to load:', img.src);
+    // Create fallback text if image fails
+    var fallback = document.createElement('div');
+    fallback.innerHTML = 'Kapstone Verified Clinic';
+    fallback.style.cssText = 'padding: 10px; background: #0066cc; color: white; border-radius: 4px; font-family: Arial, sans-serif; font-size: 14px;';
+    wrapper.appendChild(fallback);
   };
   img.onload = function() {
-    console.log('Kapstone logo loaded successfully');
+    console.log('Kapstone logo loaded successfully:', img.src);
   };
   
   // Assemble elements
@@ -94,12 +102,20 @@ router.get('/logo/:clinicId', async (req, res) => {
   wrapper.appendChild(link);
   
   // Insert into page
-  if (document.currentScript && document.currentScript.parentElement) {
-    document.currentScript.parentElement.appendChild(wrapper);
-  } else {
-    // Fallback: append to body or first available container
-    container.appendChild(wrapper);
+  try {
+    if (document.currentScript && document.currentScript.parentElement) {
+      document.currentScript.parentElement.appendChild(wrapper);
+      console.log('Badge inserted next to script tag');
+    } else {
+      // Fallback: append to body
+      document.body.appendChild(wrapper);
+      console.log('Badge inserted into body');
+    }
+  } catch (e) {
+    console.error('Error inserting Kapstone badge:', e);
   }
+  
+  console.log('Kapstone widget setup complete');
 })();`;
     
     // Add cache-busting headers
