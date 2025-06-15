@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Clinic = require('../models/Clinic');
 const memoryStore = require('../storage/memoryStore');
+const fileStore = require('../storage/fileStore');
 const { sendApprovalEmail } = require('../services/emailService');
 
 // Check if MongoDB is available
@@ -88,7 +89,7 @@ router.get('/clinics', authMiddleware, async (req, res) => {
         total
       });
     } else {
-      const allClinics = memoryStore.getAllClinics(status);
+      const allClinics = fileStore.getAllClinics(status);
       const startIndex = (page - 1) * limit;
       const clinics = allClinics.slice(startIndex, startIndex + limit);
       
@@ -164,20 +165,21 @@ router.patch('/clinics/:clinicId/toggle', authMiddleware, async (req, res) => {
         }
       });
     } else {
-      const clinic = memoryStore.findClinic(clinicId);
+      const clinic = fileStore.findClinic(clinicId);
       if (!clinic) {
         return res.status(404).json({ error: 'Clinic not found' });
       }
       
       // Toggle between approved and suspended
-      clinic.status = clinic.status === 'approved' ? 'suspended' : 'approved';
+      const newStatus = clinic.status === 'approved' ? 'suspended' : 'approved';
+      const updatedClinic = fileStore.updateClinicStatus(clinicId, newStatus);
       
       res.json({
         success: true,
         clinic: {
-          clinicId: clinic.clinicId,
-          name: clinic.name,
-          status: clinic.status
+          clinicId: updatedClinic.clinicId,
+          name: updatedClinic.name,
+          status: updatedClinic.status
         }
       });
     }
@@ -217,9 +219,9 @@ router.get('/analytics', authMiddleware, async (req, res) => {
         recentActivity
       });
     } else {
-      const summary = memoryStore.getStats();
-      const topClinics = memoryStore.getTopClinics(10);
-      const recentActivity = memoryStore.getRecentActivity(20);
+      const summary = fileStore.getStats();
+      const topClinics = fileStore.getTopClinics(10);
+      const recentActivity = fileStore.getRecentActivity(20);
       
       res.json({
         summary,
@@ -284,7 +286,7 @@ router.post('/clinics', authMiddleware, async (req, res) => {
       
     } else {
       // Memory storage version
-      const existingClinic = memoryStore.findClinicByEmailOrWebsite(null, website);
+      const existingClinic = fileStore.findClinicByEmailOrWebsite(null, website);
       
       if (existingClinic) {
         return res.status(400).json({ 
@@ -292,7 +294,7 @@ router.post('/clinics', authMiddleware, async (req, res) => {
         });
       }
       
-      const clinic = memoryStore.createClinic({
+      const clinic = fileStore.createClinic({
         name,
         website,
         status
@@ -357,14 +359,14 @@ router.delete('/clinics/:clinicId', authMiddleware, async (req, res) => {
         message: `Clinic ${clinic.name} (${clinicId}) has been deleted` 
       });
     } else {
-      const clinic = memoryStore.findClinic(clinicId);
+      const clinic = fileStore.findClinic(clinicId);
       
       if (!clinic) {
         return res.status(404).json({ error: 'Clinic not found' });
       }
       
       const clinicName = clinic.name;
-      const deleted = memoryStore.deleteClinic(clinicId);
+      const deleted = fileStore.deleteClinic(clinicId);
       
       if (deleted) {
         res.json({ 

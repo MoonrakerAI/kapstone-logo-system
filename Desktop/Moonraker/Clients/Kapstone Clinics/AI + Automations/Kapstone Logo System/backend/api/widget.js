@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Clinic = require('../models/Clinic');
 const memoryStore = require('../storage/memoryStore');
+const fileStore = require('../storage/fileStore');
 
 // Check if MongoDB is available
 const isMongoAvailable = () => {
@@ -31,14 +32,14 @@ router.get('/logo/:clinicId', async (req, res) => {
       clinic.lastImpression = new Date();
       await clinic.save();
     } else {
-      clinic = memoryStore.findClinic(clinicId);
+      clinic = fileStore.findClinic(clinicId);
       
       if (!clinic || clinic.status !== 'approved') {
         return res.status(404).send('// Clinic not found or not approved');
       }
       
       // Update impressions
-      memoryStore.incrementImpressions(clinicId);
+      fileStore.incrementImpressions(clinicId);
     }
     
     // Verify domain if referer exists (skip for testing)
