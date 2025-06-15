@@ -58,27 +58,56 @@ router.get('/logo/:clinicId', async (req, res) => {
     // Generate widget JavaScript
     const widgetScript = `
 (function() {
-  var container = document.currentScript.parentElement;
+  // Find container - try multiple methods for compatibility
+  var container = document.currentScript ? document.currentScript.parentElement : document.body;
+  
+  // Create wrapper with unique ID to avoid conflicts
   var wrapper = document.createElement('div');
   wrapper.className = 'kapstone-verified-badge';
-  wrapper.style.cssText = 'display: block; text-align: center; margin: 0 auto; position: relative; width: fit-content;';
+  wrapper.id = 'kapstone-badge-${clinicId}';
+  wrapper.style.cssText = 'display: block; text-align: center; margin: 20px auto; padding: 10px; width: fit-content; clear: both;';
   
+  // Create link
   var link = document.createElement('a');
   link.href = 'https://kapstoneclinics.com';
   link.target = '_blank';
   link.rel = 'noopener noreferrer';
   link.title = 'Verified by Kapstone Clinics';
+  link.style.cssText = 'display: inline-block; text-decoration: none;';
   
+  // Create image with error handling
   var img = document.createElement('img');
   img.src = '${req.get('host').includes('vercel.app') ? 'https' : req.protocol}://${req.get('host')}/api/logos/${clinic.logoVersion}.png';
   img.alt = 'Kapstone Verified Clinic';
-  img.style.cssText = 'max-width: 200px; height: auto; display: block; margin: 0 auto;';
+  img.style.cssText = 'max-width: 200px; height: auto; display: block; margin: 0 auto; border: 0;';
   
+  // Add error handling for image loading
+  img.onerror = function() {
+    console.log('Kapstone logo failed to load');
+  };
+  img.onload = function() {
+    console.log('Kapstone logo loaded successfully');
+  };
+  
+  // Assemble elements
   link.appendChild(img);
   wrapper.appendChild(link);
   
-  container.appendChild(wrapper);
+  // Insert into page
+  if (document.currentScript && document.currentScript.parentElement) {
+    document.currentScript.parentElement.appendChild(wrapper);
+  } else {
+    // Fallback: append to body or first available container
+    container.appendChild(wrapper);
+  }
 })();`;
+    
+    // Add cache-busting headers
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
     
     res.type('application/javascript');
     res.send(widgetScript);
