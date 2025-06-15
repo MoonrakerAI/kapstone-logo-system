@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const Clinic = require('../models/Clinic');
 const memoryStore = require('../storage/memoryStore');
 const ClinicCache = require('../storage/clinicCache');
+const kvStore = require('../storage/kvStore');
 const { sendApprovalEmail } = require('../services/emailService');
 
 // Check if MongoDB is available
@@ -168,6 +169,9 @@ router.patch('/clinics/:clinicId/toggle', authMiddleware, async (req, res) => {
       // Save to file cache for widget API
       await ClinicCache.saveClinic(clinic);
       
+      // Save to KV store for production reliability
+      await kvStore.saveClinic(clinic);
+      
       res.json({
         success: true,
         clinic: {
@@ -294,6 +298,9 @@ router.post('/clinics', authMiddleware, async (req, res) => {
       // Save to file cache for widget API
       await ClinicCache.saveClinic(clinic);
       
+      // Save to KV store for production reliability
+      await kvStore.saveClinic(clinic);
+      
       res.status(201).json({
         success: true,
         clinic: {
@@ -380,6 +387,9 @@ router.delete('/clinics/:clinicId', authMiddleware, async (req, res) => {
       // Also remove from memory store and cache
       memoryStore.deleteClinic(clinicId);
       await ClinicCache.deleteClinic(clinicId);
+      
+      // Remove from KV store
+      await kvStore.deleteClinic(clinicId);
       
       res.json({ 
         success: true, 

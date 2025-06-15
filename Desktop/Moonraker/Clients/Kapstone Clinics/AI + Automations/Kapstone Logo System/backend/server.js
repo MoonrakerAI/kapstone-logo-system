@@ -41,6 +41,7 @@ const widgetLimiter = rateLimit({
 app.use('/api', apiLimiter, require('./api/clinics'));
 app.use('/api/admin', apiLimiter, require('./api/admin'));
 app.use('/widget', widgetLimiter, require('./api/widget'));
+app.use('/widget-v2', widgetLimiter, require('./api/widget-v2'));
 app.use('/api/logos', require('./api/logos'));
 
 // MongoDB connection (optional for testing)

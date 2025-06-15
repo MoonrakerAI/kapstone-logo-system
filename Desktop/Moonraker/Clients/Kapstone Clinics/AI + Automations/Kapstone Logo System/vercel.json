@@ -16,6 +16,22 @@
   ],
   "routes": [
     {
+      "src": "/logos/(.*)",
+      "dest": "/public/logos/$1",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000",
+        "Access-Control-Allow-Origin": "*"
+      }
+    },
+    {
+      "src": "/widget-v2/(.*)",
+      "dest": "backend/server.js",
+      "headers": {
+        "Cache-Control": "public, max-age=300",
+        "Access-Control-Allow-Origin": "*"
+      }
+    },
+    {
       "src": "/widget/(.*)",
       "dest": "backend/server.js",
       "headers": {
@@ -26,21 +42,11 @@
       }
     },
     {
-      "src": "/logos/(.*)",
-      "dest": "backend/server.js",
-      "headers": {
-        "Cache-Control": "public, max-age=86400",
-        "Access-Control-Allow-Origin": "*"
-      }
-    },
-    {
       "src": "/api/logos/(.*)",
-      "dest": "backend/server.js",
+      "dest": "/public/logos/$1",
       "headers": {
-        "Cache-Control": "public, max-age=86400",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET",
-        "Access-Control-Allow-Headers": "Content-Type"
+        "Cache-Control": "public, max-age=31536000",
+        "Access-Control-Allow-Origin": "*"
       }
     },
     {
