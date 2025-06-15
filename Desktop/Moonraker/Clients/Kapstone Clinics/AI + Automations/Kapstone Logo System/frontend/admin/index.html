@@ -408,11 +408,17 @@
             for (let i = 0; i < clinics.length; i++) {
                 const clinic = clinics[i];
                 const toggleBtn = document.getElementById('toggle-' + clinic.clinicId);
-                
+                const deleteBtn = document.getElementById('delete-' + clinic.clinicId);
                 
                 if (toggleBtn) {
                     toggleBtn.addEventListener('change', function() {
                         toggleClinicStatus(clinic.clinicId, this.checked);
+                    });
+                }
+                
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', function() {
+                        deleteClinic(clinic.clinicId, clinic.name);
                     });
                 }
             }
@@ -430,6 +436,7 @@
                    '<div style="color: white; font-family: monospace;">' + script + '</div>' +
                    '</div></div>' +
                    '<div class="actions">' +
+                   '<div style="display: flex; align-items: center; justify-content: space-between;">' +
                    '<div style="display: flex; align-items: center; gap: 15px;">' +
                    '<span class="status-badge status-' + clinic.status + '">' + clinic.status + '</span>' +
                    '<div style="display: flex; align-items: center;">' +
@@ -439,6 +446,8 @@
                    '</label>' +
                    '<span class="toggle-label">' + (isEnabled ? 'Enabled' : 'Disabled') + '</span>' +
                    '</div>' +
+                   '</div>' +
+                   '<button class="btn btn-danger" id="delete-' + clinic.clinicId + '" style="padding: 6px 12px; font-size: 12px;">Delete</button>' +
                    '</div>' +
                    '</div></div>';
         }
@@ -489,6 +498,32 @@
                 const toggle = document.getElementById('toggle-' + clinicId);
                 if (toggle) {
                     toggle.checked = !isEnabled;
+                }
+            }
+        }
+        
+        async function deleteClinic(clinicId, clinicName) {
+            if (confirm('Are you sure you want to delete "' + clinicName + '"?\n\nThis action cannot be undone and will permanently remove the clinic and all its data.')) {
+                try {
+                    const response = await fetch(API_BASE + '/admin/clinics/' + clinicId, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': 'Bearer ' + authToken,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        alert('Clinic deleted successfully: ' + data.message);
+                        loadClinics(); // Refresh the list
+                    } else {
+                        const error = await response.json();
+                        alert('Error deleting clinic: ' + (error.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Delete error:', error);
+                    alert('Failed to delete clinic');
                 }
             }
         }
