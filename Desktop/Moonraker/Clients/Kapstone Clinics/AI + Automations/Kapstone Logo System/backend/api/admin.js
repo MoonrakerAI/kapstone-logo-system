@@ -340,4 +340,46 @@ router.patch('/clinics/:clinicId/logo', authMiddleware, async (req, res) => {
   }
 });
 
+// Delete clinic
+router.delete('/clinics/:clinicId', authMiddleware, async (req, res) => {
+  try {
+    const { clinicId } = req.params;
+    
+    if (isMongoAvailable()) {
+      const clinic = await Clinic.findOneAndDelete({ clinicId });
+      
+      if (!clinic) {
+        return res.status(404).json({ error: 'Clinic not found' });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Clinic ${clinic.name} (${clinicId}) has been deleted` 
+      });
+    } else {
+      const clinic = memoryStore.findClinic(clinicId);
+      
+      if (!clinic) {
+        return res.status(404).json({ error: 'Clinic not found' });
+      }
+      
+      const clinicName = clinic.name;
+      const deleted = memoryStore.deleteClinic(clinicId);
+      
+      if (deleted) {
+        res.json({ 
+          success: true, 
+          message: `Clinic ${clinicName} (${clinicId}) has been deleted` 
+        });
+      } else {
+        res.status(500).json({ error: 'Failed to delete clinic' });
+      }
+    }
+    
+  } catch (error) {
+    console.error('Delete clinic error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
