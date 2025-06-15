@@ -41,19 +41,19 @@ router.get('/logo/:clinicId', async (req, res) => {
       memoryStore.incrementImpressions(clinicId);
     }
     
-    // Verify domain if referer exists (skip for testing)
-    if (referer && process.env.NODE_ENV === 'production') {
-      const refererUrl = new URL(referer);
-      const refererDomain = refererUrl.hostname;
-      
-      const domainVerified = clinic.domains.some(d => 
-        d.domain === refererDomain && d.verified
-      );
-      
-      if (!domainVerified) {
-        return res.status(403).send('// Domain not authorized');
-      }
-    }
+    // Domain verification disabled for now to allow testing on any domain
+    // if (referer && process.env.NODE_ENV === 'production') {
+    //   const refererUrl = new URL(referer);
+    //   const refererDomain = refererUrl.hostname;
+    //   
+    //   const domainVerified = clinic.domains.some(d => 
+    //     d.domain === refererDomain && d.verified
+    //   );
+    //   
+    //   if (!domainVerified) {
+    //     return res.status(403).send('// Domain not authorized');
+    //   }
+    // }
     
     // Generate widget JavaScript
     const widgetScript = `
