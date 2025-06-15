@@ -212,6 +212,21 @@
             <button class="btn btn-danger" onclick="logout()">Logout</button>
         </div>
         
+        <!-- Search Section -->
+        <div class="search-section" style="margin-bottom: 25px;">
+            <h2 style="margin-bottom: 15px;">Search & Filter Clinics</h2>
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <input type="text" id="search-input" placeholder="Search by clinic name or ID..." style="flex: 1; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px;">
+                <select id="status-filter" style="padding: 10px; border: 1px solid #d1d5db; border-radius: 6px;">
+                    <option value="">All Statuses</option>
+                    <option value="approved">Approved</option>
+                    <option value="pending">Pending</option>
+                    <option value="suspended">Suspended</option>
+                </select>
+                <button class="btn" id="clear-search" style="background: #6b7280; color: white;">Clear</button>
+            </div>
+        </div>
+
         <div class="add-clinic-section">
             <h2 style="margin-bottom: 15px;">Add New Clinic</h2>
             <button class="btn btn-primary" id="add-clinic-btn">+ Add Clinic Manually</button>
@@ -300,6 +315,23 @@
             } else {
                 console.error('Modal not found');
             }
+            
+            // Search functionality
+            const searchInput = document.getElementById('search-input');
+            const statusFilter = document.getElementById('status-filter');
+            const clearBtn = document.getElementById('clear-search');
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', filterClinics);
+            }
+            
+            if (statusFilter) {
+                statusFilter.addEventListener('change', filterClinics);
+            }
+            
+            if (clearBtn) {
+                clearBtn.addEventListener('click', clearSearch);
+            }
         }
         
         function showModal() {
@@ -371,8 +403,9 @@
                     const data = await response.json();
                     console.log('Clinics data received:', data);
                     clinics = data.clinics || [];
+                    allClinics = clinics; // Store for search functionality
                     console.log('Number of clinics:', clinics.length);
-                    displayClinics();
+                    displayClinics(clinics);
                 } else {
                     console.error('Failed to load clinics, status:', response.status);
                     const errorData = await response.text();
@@ -390,39 +423,6 @@
                 '<div class="clinic-card">No clinics found. Add one above!</div>';
         }
         
-        function displayClinics() {
-            const container = document.getElementById('clinics-container');
-            
-            if (clinics.length === 0) {
-                showNoClinics();
-                return;
-            }
-            
-            let html = '';
-            for (let i = 0; i < clinics.length; i++) {
-                html += buildClinicCard(clinics[i]);
-            }
-            container.innerHTML = html;
-            
-            // Add event listeners for toggle switches and delete buttons
-            for (let i = 0; i < clinics.length; i++) {
-                const clinic = clinics[i];
-                const toggleBtn = document.getElementById('toggle-' + clinic.clinicId);
-                const deleteBtn = document.getElementById('delete-' + clinic.clinicId);
-                
-                if (toggleBtn) {
-                    toggleBtn.addEventListener('change', function() {
-                        toggleClinicStatus(clinic.clinicId, this.checked);
-                    });
-                }
-                
-                if (deleteBtn) {
-                    deleteBtn.addEventListener('click', function() {
-                        deleteClinic(clinic.clinicId, clinic.name);
-                    });
-                }
-            }
-        }
         
         function buildClinicCard(clinic) {
             const script = '&lt;script src=&quot;' + window.location.origin + '/widget/logo/' + clinic.clinicId + '&quot;&gt;&lt;/script&gt;';
@@ -529,6 +529,67 @@
             }
         }
         
+        // Search and filter functions
+        let allClinics = [];
+        
+        function filterClinics() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const statusFilter = document.getElementById('status-filter').value;
+            
+            let filtered = allClinics.filter(clinic => {
+                const matchesSearch = !searchTerm || 
+                    clinic.name.toLowerCase().includes(searchTerm) ||
+                    clinic.clinicId.toLowerCase().includes(searchTerm) ||
+                    clinic.website.toLowerCase().includes(searchTerm);
+                
+                const matchesStatus = !statusFilter || clinic.status === statusFilter;
+                
+                return matchesSearch && matchesStatus;
+            });
+            
+            displayClinics(filtered);
+        }
+        
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('status-filter').value = '';
+            displayClinics(allClinics);
+        }
+        
+        function displayClinics(clinicsToShow) {
+            const container = document.getElementById('clinics-container');
+            
+            if (!clinicsToShow || clinicsToShow.length === 0) {
+                container.innerHTML = '<div class="clinic-card">No clinics found</div>';
+                return;
+            }
+            
+            let html = '';
+            for (let i = 0; i < clinicsToShow.length; i++) {
+                html += buildClinicCard(clinicsToShow[i]);
+            }
+            container.innerHTML = html;
+            
+            // Add event listeners for displayed clinics
+            for (let i = 0; i < clinicsToShow.length; i++) {
+                const clinic = clinicsToShow[i];
+                const toggleBtn = document.getElementById('toggle-' + clinic.clinicId);
+                const deleteBtn = document.getElementById('delete-' + clinic.clinicId);
+                
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('change', function() {
+                        toggleClinicStatus(clinic.clinicId, this.checked);
+                    });
+                }
+                
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', function() {
+                        deleteClinic(clinic.clinicId, clinic.name);
+                    });
+                }
+            }
+        }
+
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', init);
     </script>
