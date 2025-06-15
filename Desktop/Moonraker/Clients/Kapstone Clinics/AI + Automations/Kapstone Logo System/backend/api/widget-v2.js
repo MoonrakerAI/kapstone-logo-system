@@ -72,8 +72,12 @@ router.get('/logo/:clinicId', async (req, res) => {
         response.on('data', chunk => data += chunk);
         await new Promise(resolve => response.on('end', resolve));
         
+        console.log(`Widget-v2: API response status: ${response.statusCode}, data: ${data}`);
+        
         if (response.statusCode === 200) {
           const apiData = JSON.parse(data);
+          console.log(`Widget-v2: Parsed API data:`, apiData);
+          
           if (apiData.status === 'approved') {
             clinic = {
               clinicId: apiData.clinicId,
@@ -85,7 +89,11 @@ router.get('/logo/:clinicId', async (req, res) => {
             // Sync to KV for future requests
             await kvStore.saveClinic(clinic);
             console.log(`Widget-v2: Synced clinic ${clinicId} from API to KV`);
+          } else {
+            console.log(`Widget-v2: Clinic ${clinicId} not approved, status: ${apiData.status}`);
           }
+        } else {
+          console.log(`Widget-v2: API call failed with status ${response.statusCode}`);
         }
       } catch (apiError) {
         console.error('API fallback error:', apiError.message);
