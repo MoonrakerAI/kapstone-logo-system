@@ -30,7 +30,7 @@ class StaticStore {
       
       // Write back to file
       fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2));
-      console.log(`✅ Saved clinic to static store: ${clinic.clinicId}`);
+      console.log(`✅ Static store: Saved clinic ${clinic.clinicId} with status ${clinic.status}`);
       
     } catch (error) {
       console.error('Static store save error:', error.message);

@@ -20,7 +20,7 @@ router.get('/logo/:clinicId', async (req, res) => {
     res.set({
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET',
-      'Cache-Control': 'public, max-age=300', // Cache for 5 minutes
+      'Cache-Control': 'public, max-age=60', // Cache for 1 minute only
       'Content-Type': 'application/javascript'
     });
 
@@ -84,8 +84,8 @@ router.get('/logo/:clinicId', async (req, res) => {
     }
     
     if (clinic.status !== 'approved') {
-      console.log(`Widget: Clinic ${clinicId} not approved (status: ${clinic.status})`);
-      return res.status(404).send('// Clinic not approved');
+      console.log(`Widget-v2: Clinic ${clinicId} not approved (status: ${clinic.status})`);
+      return res.status(204).send('// Clinic suspended or not approved');
     }
     
     // Update impressions asynchronously (don't wait)
