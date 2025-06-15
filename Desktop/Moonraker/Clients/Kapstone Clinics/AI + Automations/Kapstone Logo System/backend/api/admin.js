@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Clinic = require('../models/Clinic');
 const memoryStore = require('../storage/memoryStore');
+const ClinicCache = require('../storage/clinicCache');
 const { sendApprovalEmail } = require('../services/emailService');
 
 // Check if MongoDB is available
@@ -155,7 +156,7 @@ router.patch('/clinics/:clinicId/toggle', authMiddleware, async (req, res) => {
       clinic.status = clinic.status === 'approved' ? 'suspended' : 'approved';
       await clinic.save();
       
-      // Also sync to memory store for widget API fallback
+      // Also sync to memory store and cache for widget API fallback
       memoryStore.createOrUpdateClinic({
         clinicId: clinic.clinicId,
         name: clinic.name,
@@ -163,6 +164,9 @@ router.patch('/clinics/:clinicId/toggle', authMiddleware, async (req, res) => {
         status: clinic.status,
         logoVersion: clinic.logoVersion || 'standard'
       });
+      
+      // Save to file cache for widget API
+      await ClinicCache.saveClinic(clinic);
       
       res.json({
         success: true,
@@ -278,7 +282,7 @@ router.post('/clinics', authMiddleware, async (req, res) => {
       
       await clinic.save();
       
-      // Also sync to memory store for widget API fallback
+      // Also sync to memory store and cache for widget API fallback
       memoryStore.createOrUpdateClinic({
         clinicId: clinic.clinicId,
         name: clinic.name,
@@ -286,6 +290,9 @@ router.post('/clinics', authMiddleware, async (req, res) => {
         status: clinic.status,
         logoVersion: clinic.logoVersion || 'standard'
       });
+      
+      // Save to file cache for widget API
+      await ClinicCache.saveClinic(clinic);
       
       res.status(201).json({
         success: true,
@@ -370,8 +377,9 @@ router.delete('/clinics/:clinicId', authMiddleware, async (req, res) => {
         return res.status(404).json({ error: 'Clinic not found' });
       }
       
-      // Also remove from memory store
+      // Also remove from memory store and cache
       memoryStore.deleteClinic(clinicId);
+      await ClinicCache.deleteClinic(clinicId);
       
       res.json({ 
         success: true, 

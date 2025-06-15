@@ -3,6 +3,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const Clinic = require('../models/Clinic');
 const memoryStore = require('../storage/memoryStore');
+const ClinicCache = require('../storage/clinicCache');
 
 // Ensure MongoDB connection for serverless functions
 const connectMongoDB = async () => {
@@ -83,11 +84,22 @@ router.get('/logo/:clinicId', async (req, res) => {
         memoryStore.incrementImpressions(clinicId);
       }
     } else {
+      // Try memory store first
       clinic = memoryStore.findClinic(clinicId);
-      
       console.log('Memory store search result:', clinic ? 'found' : 'not found');
       
-      // If not found in memory store, try fetching from admin API as last resort
+      // If not found in memory store, try file cache
+      if (!clinic) {
+        clinic = await ClinicCache.getClinic(clinicId);
+        console.log('File cache search result:', clinic ? 'found' : 'not found');
+        
+        // If found in cache, sync back to memory store
+        if (clinic) {
+          memoryStore.createOrUpdateClinic(clinic);
+        }
+      }
+      
+      // If still not found, try fetching from admin API as last resort
       if (!clinic) {
         try {
           console.log('Attempting to fetch clinic from admin API...');
