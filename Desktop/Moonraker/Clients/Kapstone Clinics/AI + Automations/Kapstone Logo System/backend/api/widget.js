@@ -40,119 +40,55 @@ router.get('/logo/:clinicId', async (req, res) => {
     const { clinicId } = req.params;
     const referer = req.get('referer');
     
-    // Ensure MongoDB connection with retry
-    await connectMongoDB();
-    
     let clinic;
-    let mongoAvailable = isMongoAvailable();
-    console.log('Widget request for clinic:', clinicId, 'MongoDB available:', mongoAvailable);
     
-    // If MongoDB not available, try connecting again
-    if (!mongoAvailable) {
-      console.log('Retrying MongoDB connection...');
-      await connectMongoDB();
-      mongoAvailable = isMongoAvailable();
-      console.log('MongoDB retry result:', mongoAvailable);
+    // Instead of complex MongoDB connection, just call the status endpoint
+    try {
+      const https = require('https');
+      const http = require('http');
+      const url = require('url');
+      
+      const statusUrl = `${req.protocol}://${req.get('host')}/api/clinics/${clinicId}/status`;
+      const urlObj = url.parse(statusUrl);
+      const client = urlObj.protocol === 'https:' ? https : http;
+      
+      console.log('Widget fetching clinic status from:', statusUrl);
+      
+      const response = await new Promise((resolve, reject) => {
+        const request = client.request({
+          hostname: urlObj.hostname,
+          port: urlObj.port,
+          path: urlObj.path,
+          method: 'GET'
+        }, resolve);
+        
+        request.on('error', reject);
+        request.end();
+      });
+      
+      let data = '';
+      response.on('data', chunk => data += chunk);
+      
+      await new Promise(resolve => response.on('end', resolve));
+      
+      if (response.statusCode === 200) {
+        const clinicData = JSON.parse(data);
+        
+        if (clinicData.status === 'approved') {
+          clinic = clinicData;
+          console.log('Found approved clinic via status endpoint');
+        } else {
+          return res.status(404).send('// Clinic not approved');
+        }
+      } else {
+        console.log('Status endpoint returned:', response.statusCode);
+        return res.status(404).send('// Clinic not found');
+      }
+    } catch (error) {
+      console.error('Error fetching clinic status:', error.message);
+      return res.status(404).send('// Error loading clinic');
     }
     
-    if (mongoAvailable) {
-      try {
-        clinic = await Clinic.findOne({ 
-          clinicId, 
-          status: 'approved' 
-        });
-        
-        console.log('MongoDB search result:', clinic ? 'found' : 'not found');
-        
-        if (!clinic) {
-          return res.status(404).send('// Clinic not found or not approved');
-        }
-        
-        // Update impressions
-        clinic.impressions += 1;
-        clinic.lastImpression = new Date();
-        await clinic.save();
-      } catch (mongoError) {
-        console.log('MongoDB query error:', mongoError.message);
-        // Fall back to memory store if MongoDB query fails
-        clinic = memoryStore.findClinic(clinicId);
-        
-        if (!clinic || clinic.status !== 'approved') {
-          return res.status(404).send('// Clinic not found or not approved');
-        }
-        
-        memoryStore.incrementImpressions(clinicId);
-      }
-    } else {
-      // Try memory store first
-      clinic = memoryStore.findClinic(clinicId);
-      console.log('Memory store search result:', clinic ? 'found' : 'not found');
-      
-      // If not found in memory store, try file cache
-      if (!clinic) {
-        clinic = await ClinicCache.getClinic(clinicId);
-        console.log('File cache search result:', clinic ? 'found' : 'not found');
-        
-        // If found in cache, sync back to memory store
-        if (clinic) {
-          memoryStore.createOrUpdateClinic(clinic);
-        }
-      }
-      
-      // If still not found, try fetching from admin API as last resort
-      if (!clinic) {
-        try {
-          console.log('Attempting to fetch clinic from admin API...');
-          const https = require('https');
-          const http = require('http');
-          const url = require('url');
-          
-          const adminUrl = `${req.protocol}://${req.get('host')}/api/admin/clinics`;
-          const urlObj = url.parse(adminUrl);
-          const client = urlObj.protocol === 'https:' ? https : http;
-          
-          const response = await new Promise((resolve, reject) => {
-            const request = client.request({
-              hostname: urlObj.hostname,
-              port: urlObj.port,
-              path: urlObj.path,
-              method: 'GET',
-              headers: { 'Authorization': 'Bearer dummy-token' }
-            }, resolve);
-            
-            request.on('error', reject);
-            request.end();
-          });
-          
-          let data = '';
-          response.on('data', chunk => data += chunk);
-          
-          await new Promise(resolve => response.on('end', resolve));
-          
-          if (response.statusCode === 200) {
-            const parsedData = JSON.parse(data);
-            const foundClinic = parsedData.clinics.find(c => c.clinicId === clinicId);
-            
-            if (foundClinic && foundClinic.status === 'approved') {
-              clinic = foundClinic;
-              console.log('Found clinic via admin API');
-              
-              // Sync to memory store for future requests
-              memoryStore.createOrUpdateClinic(foundClinic);
-            }
-          }
-        } catch (fetchError) {
-          console.log('Admin API fetch failed:', fetchError.message);
-        }
-      }
-      
-      if (!clinic || clinic.status !== 'approved') {
-        return res.status(404).send('// Clinic not found or not approved');
-      }
-      
-      // Update impressions
-      memoryStore.incrementImpressions(clinicId);
-    }
     
     // Domain verification disabled for now to allow testing on any domain
     // if (referer && process.env.NODE_ENV === 'production') {

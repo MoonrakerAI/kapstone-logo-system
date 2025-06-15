@@ -1,7 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const Clinic = require('../models/Clinic');
+const memoryStore = require('../storage/memoryStore');
 const { sendWelcomeEmail, sendApprovalEmail } = require('../services/emailService');
+
+// Check if MongoDB is available
+const isMongoAvailable = () => {
+  return require('mongoose').connection.readyState === 1;
+};
 
 // Register new clinic
 router.post('/clinics/register', async (req, res) => {
@@ -58,9 +64,16 @@ router.post('/clinics/register', async (req, res) => {
 // Get clinic status
 router.get('/clinics/:clinicId/status', async (req, res) => {
   try {
-    const clinic = await Clinic.findOne({ 
-      clinicId: req.params.clinicId 
-    }).select('clinicId name status approvedDate logoVersion domains');
+    let clinic;
+    
+    if (isMongoAvailable()) {
+      clinic = await Clinic.findOne({ 
+        clinicId: req.params.clinicId 
+      }).select('clinicId name status approvedDate logoVersion domains');
+    } else {
+      // Fallback to memory store
+      clinic = memoryStore.findClinic(req.params.clinicId);
+    }
     
     if (!clinic) {
       return res.status(404).json({ error: 'Clinic not found' });
@@ -71,10 +84,10 @@ router.get('/clinics/:clinicId/status', async (req, res) => {
       name: clinic.name,
       status: clinic.status,
       approvedDate: clinic.approvedDate,
-      logoVersion: clinic.logoVersion,
-      verifiedDomains: clinic.domains.filter(d => d.verified).map(d => d.domain),
+      logoVersion: clinic.logoVersion || 'standard',
+      verifiedDomains: clinic.domains ? clinic.domains.filter(d => d.verified).map(d => d.domain) : [],
       embedCode: clinic.status === 'approved' 
-        ? `<script src="https://api.kapstoneclinics.com/widget/logo/${clinic.clinicId}"></script>`
+        ? `<script src="${req.protocol}://${req.get('host')}/widget/logo/${clinic.clinicId}"></script>`
         : null
     });
     
