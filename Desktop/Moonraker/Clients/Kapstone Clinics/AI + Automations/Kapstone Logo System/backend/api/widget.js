@@ -87,6 +87,53 @@ router.get('/logo/:clinicId', async (req, res) => {
       
       console.log('Memory store search result:', clinic ? 'found' : 'not found');
       
+      // If not found in memory store, try fetching from admin API as last resort
+      if (!clinic) {
+        try {
+          console.log('Attempting to fetch clinic from admin API...');
+          const https = require('https');
+          const http = require('http');
+          const url = require('url');
+          
+          const adminUrl = `${req.protocol}://${req.get('host')}/api/admin/clinics`;
+          const urlObj = url.parse(adminUrl);
+          const client = urlObj.protocol === 'https:' ? https : http;
+          
+          const response = await new Promise((resolve, reject) => {
+            const request = client.request({
+              hostname: urlObj.hostname,
+              port: urlObj.port,
+              path: urlObj.path,
+              method: 'GET',
+              headers: { 'Authorization': 'Bearer dummy-token' }
+            }, resolve);
+            
+            request.on('error', reject);
+            request.end();
+          });
+          
+          let data = '';
+          response.on('data', chunk => data += chunk);
+          
+          await new Promise(resolve => response.on('end', resolve));
+          
+          if (response.statusCode === 200) {
+            const parsedData = JSON.parse(data);
+            const foundClinic = parsedData.clinics.find(c => c.clinicId === clinicId);
+            
+            if (foundClinic && foundClinic.status === 'approved') {
+              clinic = foundClinic;
+              console.log('Found clinic via admin API');
+              
+              // Sync to memory store for future requests
+              memoryStore.createOrUpdateClinic(foundClinic);
+            }
+          }
+        } catch (fetchError) {
+          console.log('Admin API fetch failed:', fetchError.message);
+        }
+      }
+      
       if (!clinic || clinic.status !== 'approved') {
         return res.status(404).send('// Clinic not found or not approved');
       }
