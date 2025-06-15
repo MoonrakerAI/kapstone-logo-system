@@ -2,10 +2,30 @@ const express = require('express');
 const router = express.Router();
 const kvStore = require('../storage/kvStore');
 const Clinic = require('../models/Clinic');
+const mongoose = require('mongoose');
 
 // Check if MongoDB is available
 const isMongoAvailable = () => {
-  return require('mongoose').connection.readyState === 1;
+  return mongoose.connection.readyState === 1;
+};
+
+// Initialize MongoDB connection for serverless
+const initMongoDB = async () => {
+  if (mongoose.connection.readyState === 0) {
+    try {
+      if (process.env.MONGODB_URI) {
+        await mongoose.connect(process.env.MONGODB_URI, {
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+          serverSelectionTimeoutMS: 5000,
+          maxPoolSize: 1
+        });
+        console.log('Widget-v2: MongoDB connected');
+      }
+    } catch (error) {
+      console.log('Widget-v2: MongoDB connection failed:', error.message);
+    }
+  }
 };
 
 // Production-ready widget endpoint
@@ -22,28 +42,53 @@ router.get('/logo/:clinicId', async (req, res) => {
       'Content-Type': 'application/javascript'
     });
 
-    // Get clinic data from KV store with MongoDB fallback
+    // Get clinic data from KV store with API fallback
     let clinic = await kvStore.getClinic(clinicId);
     
-    // If not found in KV and MongoDB is available, try MongoDB
-    if (!clinic && isMongoAvailable()) {
+    // If not found in KV, try internal API call
+    if (!clinic) {
       try {
-        const mongoClinic = await Clinic.findOne({ clinicId, status: 'approved' });
-        if (mongoClinic) {
-          clinic = {
-            clinicId: mongoClinic.clinicId,
-            name: mongoClinic.name,
-            website: mongoClinic.website,
-            status: mongoClinic.status,
-            logoVersion: mongoClinic.logoVersion || 'standard'
-          };
+        const https = require('https');
+        const http = require('http');
+        const url = require('url');
+        
+        const statusUrl = `${req.protocol}://${req.get('host')}/api/clinics/${clinicId}/status`;
+        const urlObj = url.parse(statusUrl);
+        const client = urlObj.protocol === 'https:' ? https : http;
+        
+        const response = await new Promise((resolve, reject) => {
+          const request = client.request({
+            hostname: urlObj.hostname,
+            port: urlObj.port,
+            path: urlObj.path,
+            method: 'GET'
+          }, resolve);
           
-          // Sync to KV for future requests
-          await kvStore.saveClinic(clinic);
-          console.log(`Widget: Synced clinic ${clinicId} from MongoDB to KV`);
+          request.on('error', reject);
+          request.end();
+        });
+        
+        let data = '';
+        response.on('data', chunk => data += chunk);
+        await new Promise(resolve => response.on('end', resolve));
+        
+        if (response.statusCode === 200) {
+          const apiData = JSON.parse(data);
+          if (apiData.status === 'approved') {
+            clinic = {
+              clinicId: apiData.clinicId,
+              name: apiData.name,
+              status: apiData.status,
+              logoVersion: apiData.logoVersion || 'standard'
+            };
+            
+            // Sync to KV for future requests
+            await kvStore.saveClinic(clinic);
+            console.log(`Widget-v2: Synced clinic ${clinicId} from API to KV`);
+          }
         }
-      } catch (mongoError) {
-        console.error('MongoDB fallback error:', mongoError.message);
+      } catch (apiError) {
+        console.error('API fallback error:', apiError.message);
       }
     }
     
