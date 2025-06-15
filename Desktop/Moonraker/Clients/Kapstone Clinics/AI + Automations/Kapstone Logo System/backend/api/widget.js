@@ -220,4 +220,40 @@ router.post('/verify-domain', async (req, res) => {
   }
 });
 
+// Debug endpoint to check MongoDB connection
+router.get('/debug/:clinicId', async (req, res) => {
+  try {
+    const { clinicId } = req.params;
+    
+    await connectMongoDB();
+    const mongoAvailable = isMongoAvailable();
+    
+    let mongoResult = null;
+    let memoryResult = null;
+    
+    if (mongoAvailable) {
+      try {
+        mongoResult = await Clinic.findOne({ clinicId });
+        console.log('MongoDB debug result:', mongoResult ? 'found' : 'not found');
+      } catch (err) {
+        mongoResult = { error: err.message };
+      }
+    }
+    
+    memoryResult = memoryStore.findClinic(clinicId);
+    
+    res.json({
+      clinicId,
+      mongoAvailable,
+      mongoResult: mongoResult ? 'found' : 'not found',
+      memoryResult: memoryResult ? 'found' : 'not found',
+      mongoConnectionState: mongoose.connection.readyState,
+      hasMongoURI: !!process.env.MONGODB_URI
+    });
+    
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
