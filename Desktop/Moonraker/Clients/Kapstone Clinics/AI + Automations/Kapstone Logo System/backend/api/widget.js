@@ -61,7 +61,7 @@ router.get('/logo/:clinicId', async (req, res) => {
   var container = document.currentScript.parentElement;
   var wrapper = document.createElement('div');
   wrapper.className = 'kapstone-verified-badge';
-  wrapper.style.cssText = 'display: inline-block; position: relative;';
+  wrapper.style.cssText = 'display: block; text-align: center; margin: 0 auto; position: relative; width: fit-content;';
   
   var link = document.createElement('a');
   link.href = 'https://kapstoneclinics.com';
@@ -72,7 +72,7 @@ router.get('/logo/:clinicId', async (req, res) => {
   var img = document.createElement('img');
   img.src = '${req.get('host').includes('vercel.app') ? 'https' : req.protocol}://${req.get('host')}/api/logos/${clinic.logoVersion}.png';
   img.alt = 'Kapstone Verified Clinic';
-  img.style.cssText = 'max-width: 200px; height: auto;';
+  img.style.cssText = 'max-width: 200px; height: auto; display: block; margin: 0 auto;';
   
   link.appendChild(img);
   wrapper.appendChild(link);

@@ -404,7 +404,7 @@
             }
             container.innerHTML = html;
             
-            // Add event listeners for copy buttons and toggle switches
+            // Add event listeners for toggle switches and delete buttons
             for (let i = 0; i < clinics.length; i++) {
                 const clinic = clinics[i];
                 const toggleBtn = document.getElementById('toggle-' + clinic.clinicId);
@@ -503,6 +503,7 @@
         }
         
         async function deleteClinic(clinicId, clinicName) {
+            console.log('Delete button clicked for clinic:', clinicId, clinicName);
             if (confirm('Are you sure you want to delete "' + clinicName + '"?\n\nThis action cannot be undone and will permanently remove the clinic and all its data.')) {
                 try {
                     const response = await fetch(API_BASE + '/admin/clinics/' + clinicId, {
