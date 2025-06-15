@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Test - HTTPS Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .widget-area {
+            border: 2px dashed #007bff;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f8f9fa;
+            text-align: center;
+            min-height: 100px;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🏥 Kapstone Logo Widget Test - HTTPS Fix</h1>
+        
+        <h2>Widget Test Area</h2>
+        <p>Testing widget with HTTPS image URLs:</p>
+        
+        <div class="widget-area" id="widget-container">
+            <p>⏳ Loading Kapstone verification widget...</p>
+            <!-- Widget will load here -->
+            <script src="https://kapstone-logo-system-ldlpr0bas-moonrakerais-projects.vercel.app/widget/logo/KC-59466DC9"></script>
+        </div>
+        
+        <div id="test-status" class="status info">
+            🔍 Testing widget load...
+        </div>
+        
+        <h3>Technical Details</h3>
+        <ul>
+            <li><strong>Clinic ID:</strong> KC-59466DC9</li>
+            <li><strong>Widget URL:</strong> https://kapstone-logo-system-ldlpr0bas-moonrakerais-projects.vercel.app/widget/logo/KC-59466DC9</li>
+            <li><strong>Expected Image:</strong> https://kapstone-logo-system-ldlpr0bas-moonrakerais-projects.vercel.app/logos/standard.png</li>
+            <li><strong>Fix:</strong> Force HTTPS for Vercel domains</li>
+        </ul>
+    </div>
+
+    <script>
+        let testResult = {
+            widgetLoaded: false,
+            imageLoaded: false,
+            checkmarkVisible: false
+        };
+
+        function updateStatus() {
+            const status = document.getElementById('test-status');
+            const passed = Object.values(testResult).filter(Boolean).length;
+            const total = Object.keys(testResult).length;
+            
+            if (passed === total) {
+                status.className = 'status success';
+                status.innerHTML = `🎉 SUCCESS! All tests passed (${passed}/${total}). Logo should now be visible!`;
+            } else if (passed > 0) {
+                status.className = 'status info';
+                status.innerHTML = `⏳ Progress: ${passed}/${total} tests passed. Widget: ${testResult.widgetLoaded ? '✅' : '❌'}, Image: ${testResult.imageLoaded ? '✅' : '❌'}, Checkmark: ${testResult.checkmarkVisible ? '✅' : '❌'}`;
+            } else {
+                status.className = 'status error';
+                status.innerHTML = `❌ Widget failed to load. Check console for errors.`;
+            }
+        }
+
+        function runTests() {
+            console.log('🧪 Starting logo test...');
+            
+            // Test every 500ms for 10 seconds
+            let attempts = 0;
+            const maxAttempts = 20;
+            
+            const testInterval = setInterval(() => {
+                attempts++;
+                
+                // Check for widget elements
+                const widgets = document.querySelectorAll('.kapstone-verified-badge');
+                const images = document.querySelectorAll('.kapstone-verified-badge img');
+                const checkmarks = document.querySelectorAll('.kapstone-verified-badge span');
+                
+                // Update test results
+                testResult.widgetLoaded = widgets.length > 0;
+                testResult.checkmarkVisible = checkmarks.length > 0;
+                
+                // Check if images actually loaded
+                if (images.length > 0) {
+                    const img = images[0];
+                    testResult.imageLoaded = img.complete && img.naturalHeight !== 0;
+                    
+                    if (!img.complete) {
+                        // Add load event listener if image is still loading
+                        img.onload = () => {
+                            testResult.imageLoaded = true;
+                            updateStatus();
+                            console.log('✅ Image loaded successfully!');
+                        };
+                        img.onerror = () => {
+                            console.log('❌ Image failed to load');
+                            updateStatus();
+                        };
+                    }
+                }
+                
+                updateStatus();
+                
+                // Stop testing after success or max attempts
+                if (Object.values(testResult).every(Boolean) || attempts >= maxAttempts) {
+                    clearInterval(testInterval);
+                    
+                    console.log('🏁 Test completed:');
+                    console.log('Widget loaded:', testResult.widgetLoaded);
+                    console.log('Image loaded:', testResult.imageLoaded);
+                    console.log('Checkmark visible:', testResult.checkmarkVisible);
+                    
+                    if (images.length > 0) {
+                        console.log('Image src:', images[0].src);
+                        console.log('Image natural size:', images[0].naturalWidth + 'x' + images[0].naturalHeight);
+                    }
+                }
+            }, 500);
+        }
+
+        // Start tests when page loads
+        document.addEventListener('DOMContentLoaded', runTests);
+    </script>
+</body>
+</html>
