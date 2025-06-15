@@ -407,14 +407,8 @@
             // Add event listeners for copy buttons and toggle switches
             for (let i = 0; i < clinics.length; i++) {
                 const clinic = clinics[i];
-                const copyBtn = document.getElementById('copy-' + clinic.clinicId);
                 const toggleBtn = document.getElementById('toggle-' + clinic.clinicId);
                 
-                if (copyBtn) {
-                    copyBtn.addEventListener('click', function() {
-                        copyToClipboard(clinic.clinicId);
-                    });
-                }
                 
                 if (toggleBtn) {
                     toggleBtn.addEventListener('change', function() {
@@ -433,7 +427,7 @@
                    '<div class="clinic-id">ID: ' + clinic.clinicId + '</div>' +
                    '<div style="margin: 15px 0;"><strong>Embed Script:</strong>' +
                    '<div class="script-box">' +
-                   '<button class="copy-btn" id="copy-' + clinic.clinicId + '">Copy</button>' +
+ +
                    '<div style="color: white; font-family: monospace;">' + script + '</div>' +
                    '</div></div>' +
                    '<div class="actions">' +
@@ -455,23 +449,6 @@
             window.location.href = '/';
         }
         
-        function copyToClipboard(clinicId) {
-            const script = '<script src="' + window.location.origin + '/widget/logo/' + clinicId + '"><\/script>';
-            
-            navigator.clipboard.writeText(script).then(function() {
-                const btn = document.getElementById('copy-' + clinicId);
-                const original = btn.textContent;
-                btn.textContent = 'Copied!';
-                btn.style.background = '#10b981';
-                
-                setTimeout(function() {
-                    btn.textContent = original;
-                    btn.style.background = '#3b82f6';
-                }, 2000);
-            }).catch(function() {
-                alert('Copy failed');
-            });
-        }
         
         async function toggleClinicStatus(clinicId, isEnabled) {
             try {
