@@ -68,7 +68,7 @@ router.get('/logo/:clinicId', async (req, res) => {
   var wrapper = document.createElement('div');
   wrapper.className = 'kapstone-verified-badge';
   wrapper.id = 'kapstone-badge-${clinicId}';
-  wrapper.style.cssText = 'display: block !important; text-align: center; margin: 20px auto; padding: 10px; width: fit-content; clear: both; position: relative; z-index: 9999; background: rgba(255,255,255,0.9); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);';
+  wrapper.style.cssText = 'display: block !important; text-align: center; margin: 20px auto; padding: 0; width: fit-content; clear: both; position: relative; z-index: 9999; background: transparent;';
   
   // Create link
   var link = document.createElement('a');
