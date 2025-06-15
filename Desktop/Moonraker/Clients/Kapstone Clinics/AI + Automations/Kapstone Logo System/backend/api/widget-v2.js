@@ -2,30 +2,11 @@ const express = require('express');
 const router = express.Router();
 const kvStore = require('../storage/kvStore');
 const Clinic = require('../models/Clinic');
-const mongoose = require('mongoose');
+const memoryStore = require('../storage/memoryStore');
 
 // Check if MongoDB is available
 const isMongoAvailable = () => {
-  return mongoose.connection.readyState === 1;
-};
-
-// Initialize MongoDB connection for serverless
-const initMongoDB = async () => {
-  if (mongoose.connection.readyState === 0) {
-    try {
-      if (process.env.MONGODB_URI) {
-        await mongoose.connect(process.env.MONGODB_URI, {
-          useNewUrlParser: true,
-          useUnifiedTopology: true,
-          serverSelectionTimeoutMS: 5000,
-          maxPoolSize: 1
-        });
-        console.log('Widget-v2: MongoDB connected');
-      }
-    } catch (error) {
-      console.log('Widget-v2: MongoDB connection failed:', error.message);
-    }
-  }
+  return require('mongoose').connection.readyState === 1;
 };
 
 // Production-ready widget endpoint
@@ -42,66 +23,53 @@ router.get('/logo/:clinicId', async (req, res) => {
       'Content-Type': 'application/javascript'
     });
 
-    // Get clinic data from KV store with API fallback
+    // Get clinic data from KV store with fallback to MongoDB/memory
     let clinic = await kvStore.getClinic(clinicId);
     
-    // If not found in KV, try internal API call
+    // If not found in KV, try MongoDB directly (same logic as status API)
     if (!clinic) {
-      try {
-        const https = require('https');
-        const http = require('http');
-        const url = require('url');
-        
-        const statusUrl = `${req.protocol}://${req.get('host')}/api/clinics/${clinicId}/status`;
-        const urlObj = url.parse(statusUrl);
-        const client = urlObj.protocol === 'https:' ? https : http;
-        
-        const response = await new Promise((resolve, reject) => {
-          const request = client.request({
-            hostname: urlObj.hostname,
-            port: urlObj.port,
-            path: urlObj.path,
-            method: 'GET'
-          }, resolve);
+      if (isMongoAvailable()) {
+        try {
+          const mongoClinic = await Clinic.findOne({ 
+            clinicId, 
+            status: 'approved' 
+          }).select('clinicId name status logoVersion');
           
-          request.on('error', reject);
-          request.end();
-        });
-        
-        let data = '';
-        response.on('data', chunk => data += chunk);
-        await new Promise(resolve => response.on('end', resolve));
-        
-        console.log(`Widget-v2: API response status: ${response.statusCode}, data: ${data}`);
-        
-        if (response.statusCode === 200) {
-          const apiData = JSON.parse(data);
-          console.log(`Widget-v2: Parsed API data:`, apiData);
-          
-          if (apiData.status === 'approved') {
+          if (mongoClinic) {
             clinic = {
-              clinicId: apiData.clinicId,
-              name: apiData.name,
-              status: apiData.status,
-              logoVersion: apiData.logoVersion || 'standard'
+              clinicId: mongoClinic.clinicId,
+              name: mongoClinic.name,
+              status: mongoClinic.status,
+              logoVersion: mongoClinic.logoVersion || 'standard'
             };
             
             // Sync to KV for future requests
             await kvStore.saveClinic(clinic);
-            console.log(`Widget-v2: Synced clinic ${clinicId} from API to KV`);
-          } else {
-            console.log(`Widget-v2: Clinic ${clinicId} not approved, status: ${apiData.status}`);
+            console.log(`Widget-v2: Synced clinic ${clinicId} from MongoDB to KV`);
           }
-        } else {
-          console.log(`Widget-v2: API call failed with status ${response.statusCode}`);
+        } catch (mongoError) {
+          console.error('Widget-v2: MongoDB error:', mongoError.message);
         }
-      } catch (apiError) {
-        console.error('API fallback error:', apiError.message);
+      } else {
+        // Fallback to memory store
+        const memoryClinic = memoryStore.findClinic(clinicId);
+        if (memoryClinic && memoryClinic.status === 'approved') {
+          clinic = {
+            clinicId: memoryClinic.clinicId,
+            name: memoryClinic.name,
+            status: memoryClinic.status,
+            logoVersion: memoryClinic.logoVersion || 'standard'
+          };
+          
+          // Sync to KV for future requests
+          await kvStore.saveClinic(clinic);
+          console.log(`Widget-v2: Synced clinic ${clinicId} from memory to KV`);
+        }
       }
     }
     
     if (!clinic) {
-      console.log(`Widget: Clinic ${clinicId} not found in KV or MongoDB`);
+      console.log(`Widget-v2: Clinic ${clinicId} not found in any storage`);
       return res.status(404).send('// Clinic not found');
     }
     
