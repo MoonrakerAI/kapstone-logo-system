@@ -1,6 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const kvStore = require('../storage/kvStore');
+const Clinic = require('../models/Clinic');
+
+// Check if MongoDB is available
+const isMongoAvailable = () => {
+  return require('mongoose').connection.readyState === 1;
+};
 
 // Production-ready widget endpoint
 router.get('/logo/:clinicId', async (req, res) => {
@@ -16,11 +22,33 @@ router.get('/logo/:clinicId', async (req, res) => {
       'Content-Type': 'application/javascript'
     });
 
-    // Get clinic data from KV store
-    const clinic = await kvStore.getClinic(clinicId);
+    // Get clinic data from KV store with MongoDB fallback
+    let clinic = await kvStore.getClinic(clinicId);
+    
+    // If not found in KV and MongoDB is available, try MongoDB
+    if (!clinic && isMongoAvailable()) {
+      try {
+        const mongoClinic = await Clinic.findOne({ clinicId, status: 'approved' });
+        if (mongoClinic) {
+          clinic = {
+            clinicId: mongoClinic.clinicId,
+            name: mongoClinic.name,
+            website: mongoClinic.website,
+            status: mongoClinic.status,
+            logoVersion: mongoClinic.logoVersion || 'standard'
+          };
+          
+          // Sync to KV for future requests
+          await kvStore.saveClinic(clinic);
+          console.log(`Widget: Synced clinic ${clinicId} from MongoDB to KV`);
+        }
+      } catch (mongoError) {
+        console.error('MongoDB fallback error:', mongoError.message);
+      }
+    }
     
     if (!clinic) {
-      console.log(`Widget: Clinic ${clinicId} not found`);
+      console.log(`Widget: Clinic ${clinicId} not found in KV or MongoDB`);
       return res.status(404).send('// Clinic not found');
     }
     
