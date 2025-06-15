@@ -289,11 +289,54 @@ router.get('/debug/:clinicId', async (req, res) => {
     
     memoryResult = memoryStore.findClinic(clinicId);
     
+    // Test admin API fallback
+    let adminAPIResult = null;
+    if (!mongoResult && !memoryResult) {
+      try {
+        const https = require('https');
+        const http = require('http');
+        const url = require('url');
+        
+        const adminUrl = `${req.protocol}://${req.get('host')}/api/admin/clinics`;
+        const urlObj = url.parse(adminUrl);
+        const client = urlObj.protocol === 'https:' ? https : http;
+        
+        const response = await new Promise((resolve, reject) => {
+          const request = client.request({
+            hostname: urlObj.hostname,
+            port: urlObj.port,
+            path: urlObj.path,
+            method: 'GET',
+            headers: { 'Authorization': 'Bearer dummy-token' }
+          }, resolve);
+          
+          request.on('error', reject);
+          request.end();
+        });
+        
+        let data = '';
+        response.on('data', chunk => data += chunk);
+        
+        await new Promise(resolve => response.on('end', resolve));
+        
+        if (response.statusCode === 200) {
+          const parsedData = JSON.parse(data);
+          const foundClinic = parsedData.clinics.find(c => c.clinicId === clinicId);
+          adminAPIResult = foundClinic ? 'found' : 'not found';
+        } else {
+          adminAPIResult = `error: ${response.statusCode}`;
+        }
+      } catch (err) {
+        adminAPIResult = `error: ${err.message}`;
+      }
+    }
+    
     res.json({
       clinicId,
       mongoAvailable,
       mongoResult: mongoResult ? 'found' : 'not found',
       memoryResult: memoryResult ? 'found' : 'not found',
+      adminAPIResult,
       mongoConnectionState: mongoose.connection.readyState,
       hasMongoURI: !!process.env.MONGODB_URI
     });
