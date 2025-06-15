@@ -148,6 +148,15 @@ class MemoryStore {
         impressions: c.impressions
       }));
   }
+  
+  deleteClinic(clinicId) {
+    const clinic = this.clinics.get(clinicId);
+    if (!clinic) return false;
+    
+    const deleted = this.clinics.delete(clinicId);
+    console.log(`✅ Deleted clinic from memory: ${clinicId} - ${clinic.name}`);
+    return deleted;
+  }
 }
 
 module.exports = new MemoryStore();
