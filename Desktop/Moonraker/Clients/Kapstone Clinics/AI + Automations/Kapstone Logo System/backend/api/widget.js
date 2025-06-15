@@ -6,18 +6,25 @@ const memoryStore = require('../storage/memoryStore');
 
 // Ensure MongoDB connection for serverless functions
 const connectMongoDB = async () => {
-  if (mongoose.connection.readyState === 0) {
+  if (mongoose.connection.readyState === 0 || mongoose.connection.readyState === 3) {
     try {
+      console.log('Connecting to MongoDB...', process.env.MONGODB_URI ? 'URI provided' : 'No URI');
       await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/kapstone-logos', {
         useNewUrlParser: true,
         useUnifiedTopology: true,
-        serverSelectionTimeoutMS: 5000, // 5 second timeout
-        maxPoolSize: 1 // Limit connection pool for serverless
+        serverSelectionTimeoutMS: 10000, // 10 second timeout
+        connectTimeoutMS: 10000,
+        maxPoolSize: 1, // Limit connection pool for serverless
+        bufferCommands: false // Disable mongoose buffering
       });
       console.log('✅ MongoDB connected in widget API');
     } catch (err) {
       console.log('⚠️  MongoDB connection failed in widget API:', err.message);
     }
+  } else if (mongoose.connection.readyState === 1) {
+    console.log('MongoDB already connected');
+  } else {
+    console.log('MongoDB connection state:', mongoose.connection.readyState);
   }
 };
 
@@ -32,12 +39,20 @@ router.get('/logo/:clinicId', async (req, res) => {
     const { clinicId } = req.params;
     const referer = req.get('referer');
     
-    // Ensure MongoDB connection
+    // Ensure MongoDB connection with retry
     await connectMongoDB();
     
     let clinic;
-    const mongoAvailable = isMongoAvailable();
+    let mongoAvailable = isMongoAvailable();
     console.log('Widget request for clinic:', clinicId, 'MongoDB available:', mongoAvailable);
+    
+    // If MongoDB not available, try connecting again
+    if (!mongoAvailable) {
+      console.log('Retrying MongoDB connection...');
+      await connectMongoDB();
+      mongoAvailable = isMongoAvailable();
+      console.log('MongoDB retry result:', mongoAvailable);
+    }
     
     if (mongoAvailable) {
       try {
