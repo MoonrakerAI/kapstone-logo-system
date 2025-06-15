@@ -73,15 +73,17 @@ router.get('/logo/:clinicId', async (req, res) => {
       
       if (response.statusCode === 200) {
         const clinicData = JSON.parse(data);
+        console.log('Status endpoint data:', clinicData);
         
         if (clinicData.status === 'approved') {
           clinic = clinicData;
           console.log('Found approved clinic via status endpoint');
         } else {
+          console.log('Clinic not approved, status:', clinicData.status);
           return res.status(404).send('// Clinic not approved');
         }
       } else {
-        console.log('Status endpoint returned:', response.statusCode);
+        console.log('Status endpoint returned:', response.statusCode, 'data:', data);
         return res.status(404).send('// Clinic not found');
       }
     } catch (error) {
@@ -89,6 +91,11 @@ router.get('/logo/:clinicId', async (req, res) => {
       return res.status(404).send('// Error loading clinic');
     }
     
+    // Ensure we have a clinic object
+    if (!clinic) {
+      console.log('No clinic object after status fetch');
+      return res.status(404).send('// Clinic data not available');
+    }
     
     // Domain verification disabled for now to allow testing on any domain
     // if (referer && process.env.NODE_ENV === 'production') {
@@ -129,7 +136,7 @@ router.get('/logo/:clinicId', async (req, res) => {
   
   // Create image with error handling
   var img = document.createElement('img');
-  img.src = '${req.get('host').includes('vercel.app') ? 'https' : req.protocol}://${req.get('host')}/api/logos/${clinic.logoVersion}.png';
+  img.src = '${req.get('host').includes('vercel.app') ? 'https' : req.protocol}://${req.get('host')}/api/logos/${clinic.logoVersion || 'standard'}.png';
   img.alt = 'Kapstone Verified Clinic';
   img.style.cssText = 'max-width: 200px !important; height: auto !important; display: block !important; margin: 0 auto; border: 0; opacity: 1 !important; visibility: visible !important;';
   
