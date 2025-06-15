@@ -155,6 +155,15 @@ router.patch('/clinics/:clinicId/toggle', authMiddleware, async (req, res) => {
       clinic.status = clinic.status === 'approved' ? 'suspended' : 'approved';
       await clinic.save();
       
+      // Also sync to memory store for widget API fallback
+      memoryStore.createOrUpdateClinic({
+        clinicId: clinic.clinicId,
+        name: clinic.name,
+        website: clinic.website,
+        status: clinic.status,
+        logoVersion: clinic.logoVersion || 'standard'
+      });
+      
       res.json({
         success: true,
         clinic: {
@@ -269,6 +278,15 @@ router.post('/clinics', authMiddleware, async (req, res) => {
       
       await clinic.save();
       
+      // Also sync to memory store for widget API fallback
+      memoryStore.createOrUpdateClinic({
+        clinicId: clinic.clinicId,
+        name: clinic.name,
+        website: clinic.website,
+        status: clinic.status,
+        logoVersion: clinic.logoVersion || 'standard'
+      });
+      
       res.status(201).json({
         success: true,
         clinic: {
@@ -351,6 +369,9 @@ router.delete('/clinics/:clinicId', authMiddleware, async (req, res) => {
       if (!clinic) {
         return res.status(404).json({ error: 'Clinic not found' });
       }
+      
+      // Also remove from memory store
+      memoryStore.deleteClinic(clinicId);
       
       res.json({ 
         success: true, 

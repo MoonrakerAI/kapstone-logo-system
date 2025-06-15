@@ -157,6 +157,47 @@ class MemoryStore {
     console.log(`✅ Deleted clinic from memory: ${clinicId} - ${clinic.name}`);
     return deleted;
   }
+  
+  createOrUpdateClinic(data) {
+    // Extract domain safely
+    let domain = data.website;
+    try {
+      domain = new URL(data.website).hostname;
+    } catch (urlError) {
+      domain = data.website.replace(/^https?:\/\//, '').split('/')[0];
+    }
+    
+    const clinic = {
+      clinicId: data.clinicId,
+      name: data.name,
+      email: data.email || `${data.name.toLowerCase().replace(/\s+/g, '')}@example.com`,
+      website: data.website,
+      status: data.status || 'approved',
+      approvedDate: data.status === 'approved' ? new Date() : null,
+      logoVersion: data.logoVersion || 'standard',
+      apiKey: data.apiKey || (data.status === 'approved' ? this.generateApiKey() : null),
+      domains: [{
+        domain: domain,
+        verified: false,
+        addedDate: new Date()
+      }],
+      impressions: data.impressions || 0,
+      lastImpression: data.lastImpression || null,
+      metadata: {
+        contactPerson: data.contactPerson || '',
+        phone: data.phone || '',
+        address: data.address || '',
+        certifications: data.certifications || [],
+        notes: data.notes || ''
+      },
+      createdAt: data.createdAt || new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.clinics.set(clinic.clinicId, clinic);
+    console.log(`✅ Synced clinic to memory: ${clinic.clinicId} - ${clinic.name} (${clinic.status})`);
+    return clinic;
+  }
 }
 
 module.exports = new MemoryStore();
