@@ -64,10 +64,10 @@ router.get('/logo/:clinicId', async (req, res) => {
   wrapper.style.cssText = 'display: inline-block; position: relative;';
   
   var link = document.createElement('a');
-  link.href = 'https://directory.kapstoneclinics.com/clinic/${clinicId}';
+  link.href = 'https://kapstoneclinics.com';
   link.target = '_blank';
   link.rel = 'noopener noreferrer';
-  link.title = 'Verified by Kapstone Clinics Directory';
+  link.title = 'Verified by Kapstone Clinics';
   
   var img = document.createElement('img');
   img.src = '${req.get('host').includes('vercel.app') ? 'https' : req.protocol}://${req.get('host')}/api/logos/${clinic.logoVersion}.png';
@@ -76,12 +76,6 @@ router.get('/logo/:clinicId', async (req, res) => {
   
   link.appendChild(img);
   wrapper.appendChild(link);
-  
-  // Add verification checkmark
-  var verified = document.createElement('span');
-  verified.innerHTML = '✓';
-  verified.style.cssText = 'position: absolute; top: -5px; right: -5px; background: #22c55e; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);';
-  wrapper.appendChild(verified);
   
   container.appendChild(wrapper);
 })();`;
