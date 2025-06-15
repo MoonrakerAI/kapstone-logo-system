@@ -10,7 +10,9 @@ const connectMongoDB = async () => {
     try {
       await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/kapstone-logos', {
         useNewUrlParser: true,
-        useUnifiedTopology: true
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 5000, // 5 second timeout
+        maxPoolSize: 1 // Limit connection pool for serverless
       });
       console.log('✅ MongoDB connected in widget API');
     } catch (err) {
@@ -38,21 +40,33 @@ router.get('/logo/:clinicId', async (req, res) => {
     console.log('Widget request for clinic:', clinicId, 'MongoDB available:', mongoAvailable);
     
     if (mongoAvailable) {
-      clinic = await Clinic.findOne({ 
-        clinicId, 
-        status: 'approved' 
-      });
-      
-      console.log('MongoDB search result:', clinic ? 'found' : 'not found');
-      
-      if (!clinic) {
-        return res.status(404).send('// Clinic not found or not approved');
+      try {
+        clinic = await Clinic.findOne({ 
+          clinicId, 
+          status: 'approved' 
+        });
+        
+        console.log('MongoDB search result:', clinic ? 'found' : 'not found');
+        
+        if (!clinic) {
+          return res.status(404).send('// Clinic not found or not approved');
+        }
+        
+        // Update impressions
+        clinic.impressions += 1;
+        clinic.lastImpression = new Date();
+        await clinic.save();
+      } catch (mongoError) {
+        console.log('MongoDB query error:', mongoError.message);
+        // Fall back to memory store if MongoDB query fails
+        clinic = memoryStore.findClinic(clinicId);
+        
+        if (!clinic || clinic.status !== 'approved') {
+          return res.status(404).send('// Clinic not found or not approved');
+        }
+        
+        memoryStore.incrementImpressions(clinicId);
       }
-      
-      // Update impressions
-      clinic.impressions += 1;
-      clinic.lastImpression = new Date();
-      await clinic.save();
     } else {
       clinic = memoryStore.findClinic(clinicId);
       
