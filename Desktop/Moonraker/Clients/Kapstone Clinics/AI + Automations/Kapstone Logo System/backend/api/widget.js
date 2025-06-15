@@ -1,11 +1,27 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Clinic = require('../models/Clinic');
 const memoryStore = require('../storage/memoryStore');
 
+// Ensure MongoDB connection for serverless functions
+const connectMongoDB = async () => {
+  if (mongoose.connection.readyState === 0) {
+    try {
+      await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/kapstone-logos', {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+      });
+      console.log('✅ MongoDB connected in widget API');
+    } catch (err) {
+      console.log('⚠️  MongoDB connection failed in widget API:', err.message);
+    }
+  }
+};
+
 // Check if MongoDB is available
 const isMongoAvailable = () => {
-  return require('mongoose').connection.readyState === 1;
+  return mongoose.connection.readyState === 1;
 };
 
 // Serve logo widget
@@ -14,13 +30,20 @@ router.get('/logo/:clinicId', async (req, res) => {
     const { clinicId } = req.params;
     const referer = req.get('referer');
     
-    let clinic;
+    // Ensure MongoDB connection
+    await connectMongoDB();
     
-    if (isMongoAvailable()) {
+    let clinic;
+    const mongoAvailable = isMongoAvailable();
+    console.log('Widget request for clinic:', clinicId, 'MongoDB available:', mongoAvailable);
+    
+    if (mongoAvailable) {
       clinic = await Clinic.findOne({ 
         clinicId, 
         status: 'approved' 
       });
+      
+      console.log('MongoDB search result:', clinic ? 'found' : 'not found');
       
       if (!clinic) {
         return res.status(404).send('// Clinic not found or not approved');
@@ -32,6 +55,8 @@ router.get('/logo/:clinicId', async (req, res) => {
       await clinic.save();
     } else {
       clinic = memoryStore.findClinic(clinicId);
+      
+      console.log('Memory store search result:', clinic ? 'found' : 'not found');
       
       if (!clinic || clinic.status !== 'approved') {
         return res.status(404).send('// Clinic not found or not approved');
