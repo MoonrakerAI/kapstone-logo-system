@@ -301,6 +301,9 @@ router.get('/debug/:clinicId', async (req, res) => {
     
     memoryResult = memoryStore.findClinic(clinicId);
     
+    // Test file cache
+    const fileCacheResult = await ClinicCache.getClinic(clinicId);
+    
     // Test admin API fallback
     let adminAPIResult = null;
     if (!mongoResult && !memoryResult) {
@@ -348,9 +351,11 @@ router.get('/debug/:clinicId', async (req, res) => {
       mongoAvailable,
       mongoResult: mongoResult ? 'found' : 'not found',
       memoryResult: memoryResult ? 'found' : 'not found',
+      fileCacheResult: fileCacheResult ? 'found' : 'not found',
       adminAPIResult,
       mongoConnectionState: mongoose.connection.readyState,
-      hasMongoURI: !!process.env.MONGODB_URI
+      hasMongoURI: !!process.env.MONGODB_URI,
+      tmpDirExists: require('fs').existsSync('/tmp')
     });
     
   } catch (error) {
