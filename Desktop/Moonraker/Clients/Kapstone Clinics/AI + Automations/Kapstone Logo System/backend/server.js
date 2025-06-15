@@ -16,7 +16,14 @@ app.use(express.json());
 
 // Serve static files
 app.use(express.static(path.join(__dirname, '../frontend')));
-app.use('/logos', express.static(path.join(__dirname, '../public/logos')));
+
+// Serve logos with explicit CORS headers
+app.use('/logos', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+}, express.static(path.join(__dirname, '../public/logos')));
 
 // Rate limiting for API
 const apiLimiter = rateLimit({
@@ -34,6 +41,7 @@ const widgetLimiter = rateLimit({
 app.use('/api', apiLimiter, require('./api/clinics'));
 app.use('/api/admin', apiLimiter, require('./api/admin'));
 app.use('/widget', widgetLimiter, require('./api/widget'));
+app.use('/api/logos', require('./api/logos'));
 
 // MongoDB connection (optional for testing)
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/kapstone-logos', {

@@ -34,6 +34,16 @@
       }
     },
     {
+      "src": "/api/logos/(.*)",
+      "dest": "backend/server.js",
+      "headers": {
+        "Cache-Control": "public, max-age=86400",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET",
+        "Access-Control-Allow-Headers": "Content-Type"
+      }
+    },
+    {
       "src": "/api/(.*)",
       "dest": "backend/server.js"
     },

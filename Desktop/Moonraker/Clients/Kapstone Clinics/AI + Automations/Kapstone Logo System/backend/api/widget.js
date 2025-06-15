@@ -70,7 +70,7 @@ router.get('/logo/:clinicId', async (req, res) => {
   link.title = 'Verified by Kapstone Clinics Directory';
   
   var img = document.createElement('img');
-  img.src = '${req.get('host').includes('vercel.app') ? 'https' : req.protocol}://${req.get('host')}/logos/${clinic.logoVersion}.png';
+  img.src = '${req.get('host').includes('vercel.app') ? 'https' : req.protocol}://${req.get('host')}/api/logos/${clinic.logoVersion}.png';
   img.alt = 'Kapstone Verified Clinic';
   img.style.cssText = 'max-width: 200px; height: auto;';
   
