@@ -26,57 +26,46 @@ router.get('/logo/:clinicId', async (req, res) => {
       'Content-Type': 'application/javascript'
     });
 
-    // Get clinic data from static store first (most reliable for serverless)
-    let clinic = await staticStore.getClinic(clinicId);
-    console.log(`Widget-v2: Static store result for ${clinicId}:`, clinic);
+    let clinic = null;
     
-    // If not found in static store, try KV store
-    if (!clinic) {
-      clinic = await kvStore.getClinic(clinicId);
-      console.log(`Widget-v2: KV store result for ${clinicId}:`, clinic);
+    // Try MongoDB first if available (most reliable)
+    if (isMongoAvailable()) {
+      try {
+        const mongoClinic = await Clinic.findOne({ 
+          clinicId
+        }).select('clinicId name status logoVersion');
+        
+        if (mongoClinic) {
+          clinic = {
+            clinicId: mongoClinic.clinicId,
+            name: mongoClinic.name,
+            status: mongoClinic.status,
+            logoVersion: mongoClinic.logoVersion || 'standard'
+          };
+          console.log(`Widget-v2: MongoDB result for ${clinicId}: Found with status: ${clinic.status}`);
+        }
+      } catch (mongoError) {
+        console.error('Widget-v2: MongoDB error:', mongoError.message);
+      }
     }
     
-    // If not found in KV, try MongoDB directly (same logic as status API)
+    // If not in MongoDB, try KV store
     if (!clinic) {
-      if (isMongoAvailable()) {
-        try {
-          const mongoClinic = await Clinic.findOne({ 
-            clinicId, 
-            status: 'approved' 
-          }).select('clinicId name status logoVersion');
-          
-          if (mongoClinic) {
-            clinic = {
-              clinicId: mongoClinic.clinicId,
-              name: mongoClinic.name,
-              status: mongoClinic.status,
-              logoVersion: mongoClinic.logoVersion || 'standard'
-            };
-            
-            // Sync to KV and static store for future requests
-            await kvStore.saveClinic(clinic);
-            await staticStore.saveClinic(clinic);
-            console.log(`Widget-v2: Synced clinic ${clinicId} from MongoDB to KV and static`);
-          }
-        } catch (mongoError) {
-          console.error('Widget-v2: MongoDB error:', mongoError.message);
-        }
-      } else {
-        // Fallback to memory store
-        const memoryClinic = memoryStore.findClinic(clinicId);
-        if (memoryClinic && memoryClinic.status === 'approved') {
-          clinic = {
-            clinicId: memoryClinic.clinicId,
-            name: memoryClinic.name,
-            status: memoryClinic.status,
-            logoVersion: memoryClinic.logoVersion || 'standard'
-          };
-          
-          // Sync to KV and static store for future requests
-          await kvStore.saveClinic(clinic);
-          await staticStore.saveClinic(clinic);
-          console.log(`Widget-v2: Synced clinic ${clinicId} from memory to KV and static`);
-        }
+      clinic = await kvStore.getClinic(clinicId);
+      console.log(`Widget-v2: KV store result for ${clinicId}:`, clinic ? `Found with status: ${clinic.status}` : 'Not found');
+    }
+    
+    // If not in KV, try memory store
+    if (!clinic) {
+      const memoryClinic = memoryStore.findClinic(clinicId);
+      if (memoryClinic) {
+        clinic = {
+          clinicId: memoryClinic.clinicId,
+          name: memoryClinic.name,
+          status: memoryClinic.status,
+          logoVersion: memoryClinic.logoVersion || 'standard'
+        };
+        console.log(`Widget-v2: Memory store result for ${clinicId}: Found with status: ${clinic.status}`);
       }
     }
     
@@ -87,7 +76,12 @@ router.get('/logo/:clinicId', async (req, res) => {
     
     if (clinic.status !== 'approved') {
       console.log(`Widget-v2: Clinic ${clinicId} not approved (status: ${clinic.status})`);
-      return res.status(204).send('// Clinic suspended or not approved');
+      // Return empty script that removes any existing badge
+      const removeScript = `(function(){
+        var existing = document.getElementById('kapstone-badge-${clinicId}');
+        if (existing) existing.remove();
+      })();`;
+      return res.send(removeScript);
     }
     
     // Update impressions asynchronously (don't wait)
