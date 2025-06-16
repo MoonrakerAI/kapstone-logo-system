@@ -175,6 +175,7 @@ router.patch('/clinics/:clinicId/toggle', authMiddleware, async (req, res) => {
       
       // Save to static store for widget-v2 access
       await staticStore.saveClinic(clinic);
+      console.log(`Admin: Toggled clinic ${clinicId} to ${clinic.status} - saved to static store`);
       
       res.json({
         success: true,
@@ -192,6 +193,10 @@ router.patch('/clinics/:clinicId/toggle', authMiddleware, async (req, res) => {
       
       // Toggle between approved and suspended
       clinic.status = clinic.status === 'approved' ? 'suspended' : 'approved';
+      
+      // Save to static store even in memory mode
+      await staticStore.saveClinic(clinic);
+      console.log(`Admin: Toggled clinic ${clinicId} to ${clinic.status} - saved to static store (memory mode)`);
       
       res.json({
         success: true,

@@ -27,7 +27,7 @@
       "src": "/widget-v2/(.*)",
       "dest": "backend/server.js",
       "headers": {
-        "Cache-Control": "public, max-age=60",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
         "Access-Control-Allow-Origin": "*"
       }
     },

@@ -20,7 +20,9 @@ router.get('/logo/:clinicId', async (req, res) => {
     res.set({
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET',
-      'Cache-Control': 'public, max-age=60', // Cache for 1 minute only
+      'Cache-Control': 'no-cache, no-store, must-revalidate', // No caching
+      'Pragma': 'no-cache',
+      'Expires': '0',
       'Content-Type': 'application/javascript'
     });
 
