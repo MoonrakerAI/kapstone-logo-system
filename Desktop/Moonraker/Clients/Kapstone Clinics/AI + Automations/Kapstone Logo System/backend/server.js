@@ -45,12 +45,18 @@ app.use('/widget-v2', widgetLimiter, require('./api/widget-v2'));
 app.use('/api/logos', require('./api/logos'));
 
 // MongoDB connection (optional for testing)
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/kapstone-logos', {
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/kapstone-logos';
+console.log('🔗 Attempting MongoDB connection...');
+console.log('   URI exists:', !!process.env.MONGODB_URI);
+
+mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => {
-  console.log('✅ Connected to MongoDB');
+  console.log('✅ Connected to MongoDB successfully!');
+  console.log('   Database:', mongoose.connection.name);
 }).catch(err => {
+  console.error('❌ MongoDB connection failed:', err.message);
   console.log('⚠️  MongoDB not available - using memory storage for testing');
   console.log('   Install MongoDB or use cloud database for persistence');
 });

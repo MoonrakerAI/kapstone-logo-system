@@ -11,7 +11,9 @@ const { sendApprovalEmail } = require('../services/emailService');
 
 // Check if MongoDB is available
 const isMongoAvailable = () => {
-  return require('mongoose').connection.readyState === 1;
+  const state = require('mongoose').connection.readyState;
+  console.log('MongoDB connection state:', state, '(1=connected, 0=disconnected)');
+  return state === 1;
 };
 
 // Admin authentication middleware
